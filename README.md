@@ -2,6 +2,8 @@
 
 A command-line tool to manipulate and inspect your Dart projects.
 
+[![Build Status](https://travis-ci.org/google/tuneup.dart.svg)](https://travis-ci.org/google/tuneup.dart)
+
 ## Usage
 
 To install, run:
