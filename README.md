@@ -8,8 +8,7 @@ To install, run:
 
     pub global activate tuneup
 
-and run `tuneup` (or `pub global run tuneup`) to see a list of available
-commands.
+Run `tuneup` (or `pub global run tuneup`) to see a list of available commands.
 
 - *init*: create a new project
 - *info*: display metadata and statistics about the project
@@ -19,4 +18,4 @@ commands.
 
 ## Filing Issues
 
-Please file reports on the [GitHub Issue Tracker](todo)
+Please file reports on the [GitHub Issue Tracker](https://github.com/google/tuneup.dart/issues)
