@@ -82,8 +82,9 @@ void defineTests() {
       Tuneup tuneup = new Tuneup(logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
-        File other = new File('foo/bin/heyworld.dart');
-        other.writeAsStringSync(_errorText);
+        File other = new File('foo/web/index.html');
+        other.parent.createSync(recursive: true);
+        other.writeAsStringSync('<body>\n  hey!\n</body>\n');
       }).then((_) {
         return tuneup.processArgs(['stats'], directory: foo).then((_) {
           expect(logger.out, contains('2 source files, 6 lines of code'));
