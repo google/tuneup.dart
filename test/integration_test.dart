@@ -60,12 +60,12 @@ void defineTests() {
       });
     });
 
-    test('info', () {
+    test('stats', () {
       Tuneup tuneup = new Tuneup(logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
-        return tuneup.processArgs(['info'], directory: foo).then((_) {
+        return tuneup.processArgs(['stats'], directory: foo).then((_) {
           expect(logger.out, contains('1 source files, 3 lines of code.'));
           expect(logger.err, isEmpty);
         });

@@ -2,7 +2,7 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library tuneup.info;
+library tuneup.info_command;
 
 import 'dart:async';
 import 'dart:io';
@@ -19,8 +19,8 @@ import 'common.dart';
 
 // TODO: breakdown of which lines in what dirs
 
-class InfoCommand extends Command {
-  InfoCommand() : super('info',
+class StatsCommand extends Command {
+  StatsCommand() : super('stats',
       'display metadata and statistics about the project');
 
   Future execute(Project project, [args]) {

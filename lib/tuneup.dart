@@ -12,11 +12,11 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-import 'src/analyze.dart';
-import 'src/clean.dart';
+import 'src/analyze_command.dart';
+import 'src/clean_command.dart';
 import 'src/common.dart';
-import 'src/info.dart';
-import 'src/init.dart';
+import 'src/init_command.dart';
+import 'src/stats_command.dart';
 
 export 'src/common.dart' show CliLogger;
 
@@ -34,7 +34,7 @@ class Tuneup {
 
   Tuneup([this.logger = const CliLogger()]) {
     _addCommand(new InitCommand());
-    _addCommand(new InfoCommand());
+    _addCommand(new StatsCommand());
     _addCommand(new AnalyzeCommand());
     _addCommand(new CleanCommand());
   }
@@ -84,17 +84,20 @@ class Tuneup {
     parser.addFlag('version', negatable: false,
         help: 'Display the application version.');
 
+    // init
     ArgParser commandParser = parser.addCommand('init');
     commandParser.addFlag('override', negatable: false,
         help: 'Force generation of the sample project.');
 
-    parser.addCommand('pub');
+    // stats
+    parser.addCommand('stats');
 
-    parser.addCommand('info');
-
+    // analyze
     commandParser = parser.addCommand('analyze');
     commandParser.addFlag('ignore-infos', negatable: false,
         help: 'Ignore any info level issues.');
+
+    // clean
     parser.addCommand('clean');
 
     return parser;
