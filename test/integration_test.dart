@@ -7,9 +7,8 @@ library integration_test;
 import 'dart:io';
 
 import 'package:tuneup/tuneup.dart';
+import 'package:tuneup/src/common.dart';
 import 'package:unittest/unittest.dart';
-
-void main() => defineTests();
 
 void defineTests() {
   group('integration tests', () {
@@ -33,6 +32,25 @@ void defineTests() {
         expect(logger.out, contains('A tool to improve visibility into your Dart projects.'));
         expect(logger.out, contains('commands:'));
         expect(logger.err, isEmpty);
+      });
+    });
+
+    test('bad command', () {
+      Tuneup tuneup = new Tuneup(logger);
+      return tuneup.processArgs(['foo_command'], directory: foo).then((_) {
+        expect(logger.out, contains('A tool to improve visibility into your Dart projects.'));
+        expect(logger.out, contains('commands:'));
+        expect(logger.err, isEmpty);
+      });
+    });
+
+    test('bad arg', () {
+      Tuneup tuneup = new Tuneup(logger);
+      return tuneup.processArgs(['--foo', 'bar'], directory: foo).then((_) {
+        fail('should have thrown');
+      }).catchError((e) {
+        expect(e is ArgError, true);
+        expect(e.message, contains('Could not find an option named'));
       });
     });
 
@@ -64,9 +82,11 @@ void defineTests() {
       Tuneup tuneup = new Tuneup(logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
+        File other = new File('foo/bin/heyworld.dart');
+        other.writeAsStringSync(_errorText);
       }).then((_) {
         return tuneup.processArgs(['stats'], directory: foo).then((_) {
-          expect(logger.out, contains('1 source files, 3 lines of code.'));
+          expect(logger.out, contains('2 source files, 6 lines of code'));
           expect(logger.err, isEmpty);
         });
       });
@@ -84,6 +104,23 @@ void defineTests() {
       });
     });
 
+    test('analyze with errors', () {
+      Tuneup tuneup = new Tuneup(logger);
+      return tuneup.processArgs(['init'], directory: foo).then((_) {
+        File f = new File('foo/bin/helloworld.dart');
+        expect(f.existsSync(), true);
+        f.writeAsStringSync(_errorText);
+      }).then((_) {
+        return tuneup.processArgs(['analyze'], directory: foo);
+      }).then((_) {
+        fail('expected analysis errors');
+      }).catchError((e) {
+        expect(e is ExitCode, true);
+        expect(logger.out, contains('2 issues found; analyzed 1 source file in'));
+        expect(logger.err, isEmpty);
+      });
+    });
+
     test('clean', () {
       Tuneup tuneup = new Tuneup(logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
@@ -92,7 +129,6 @@ void defineTests() {
         new Directory('foo/build').createSync();
         return tuneup.processArgs(['clean'], directory: foo);
       }).then((_) {
-        print(logger.out);
         expect(logger.out, contains('Deleting build'));
         expect(logger.err, isEmpty);
       });
@@ -110,3 +146,9 @@ class _Logger implements CliLogger {
   String get out => _out.toString();
   String get err => _err.toString();
 }
+
+String _errorText = '''
+void main() {
+  prints('hello world!')
+}
+''';
