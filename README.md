@@ -13,7 +13,7 @@ To install, run:
 Run `tuneup` (or `pub global run tuneup`) to see a list of available commands.
 
 - *init*: create a new project
-- *info*: display metadata and statistics about the project
+- *stats*: display metadata and statistics about the project
 - *analyze*: analyze all the source code in the project - fail if there are any
    errors
 - *clean*: clean the project (remove the build/ directory)
