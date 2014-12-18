@@ -7,11 +7,13 @@ library tuneup.common;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:grinder/grinder.dart';
+import 'package:grinder/grinder.dart' as grinder;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
 export 'package:yaml/yaml.dart' show YamlMap;
+
+List cliArgs = [];
 
 abstract class Command {
   final String name;
@@ -40,15 +42,9 @@ class Project {
     }
   }
 
-  String get sdkPath {
-    // TODO:
-    //print('todo: implement get sdkPath');
-    return sdkDir.path;
-  }
+  String get sdkPath => grinder.getSdkDir(cliArgs).path;
 
-  String get packagePath {
-    return 'packages';
-  }
+  String get packagePath => 'packages';
 
   yaml.YamlMap get pubspec {
     return yaml.loadYaml(

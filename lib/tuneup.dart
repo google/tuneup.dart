@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 /**
- * TODO: doc
+ * A command-line tool to manipulate and inspect your Dart projects.
  */
 library tuneup;
 
@@ -21,12 +21,12 @@ import 'src/stats_command.dart';
 export 'src/common.dart' show CliLogger;
 
 // This version must be updated in tandem with the pubspec version.
-const String APP_VERSION = '0.0.1';
+const String APP_VERSION = '0.0.2';
 const String APP_NAME = "tuneup";
 
-// TODO: --dart-sdk
-
 // TODO: --package-root
+
+// TODO: add a trim command
 
 class Tuneup {
   final CliLogger logger;
@@ -45,6 +45,9 @@ class Tuneup {
 
   Future processArgs(List<String> args, {Directory directory}) {
     if (directory == null) directory = Directory.current;
+
+    // TODO: clean up this global state.
+    cliArgs = args;
 
     ArgParser argParser = _createArgParser();
 
@@ -80,9 +83,12 @@ class Tuneup {
   ArgParser _createArgParser() {
     ArgParser parser = new ArgParser();
 
-    parser.addFlag('help', abbr: 'h', negatable: false, help: 'Help!');
+    parser.addFlag('help', abbr: 'h', negatable: false,
+        help: 'Help!');
     parser.addFlag('version', negatable: false,
         help: 'Display the application version.');
+    parser.addOption('dart-sdk', hide: true,
+        help: 'the path to the sdk');
 
     // init
     ArgParser commandParser = parser.addCommand('init');
@@ -104,6 +110,8 @@ class Tuneup {
   }
 
   void _usage(ArgParser argParser) {
+    final String indent = '        ';
+
     _out('usage: ${APP_NAME} <command>');
     _out('A tool to improve visibility into your Dart projects.');
     _out('');
@@ -115,7 +123,7 @@ class Tuneup {
       _out('  ${name}: ${command.description}');
       String usage = argParser.commands[name].usage;
       if (usage.isNotEmpty) {
-        _out('    ' + usage.split('\n').join('    '));
+        _out(indent + usage.split('\n').join(indent));
       }
     });
   }
