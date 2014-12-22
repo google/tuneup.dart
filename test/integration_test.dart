@@ -2,7 +2,7 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library integration_test;
+library tuneup.integration_test;
 
 import 'dart:io';
 
@@ -87,8 +87,24 @@ void defineTests() {
         other.writeAsStringSync('<body>\n  hey!\n</body>\n');
       }).then((_) {
         return tuneup.processArgs(['stats'], directory: foo).then((_) {
-          expect(logger.out, contains('2 source files, 6 lines of code'));
+          expect(logger.out, contains('2 source files and 6 lines of code'));
           expect(logger.err, isEmpty);
+        });
+      });
+    });
+
+    test('trim', () {
+      Tuneup tuneup = new Tuneup(logger);
+      File hello = new File('foo/bin/helloworld.dart');
+      File other = new File('foo/web/index.html');
+
+      return tuneup.processArgs(['init'], directory: foo).then((_) {
+        other.parent.createSync(recursive: true);
+        other.writeAsStringSync('<body>\n  hey!\n\n\nfoo \n</body>\n\n\n');
+      }).then((_) {
+        return tuneup.processArgs(['trim'], directory: foo).then((_) {
+          expect(hello.readAsStringSync(), "void main() {\n  print('hello world!');\n}\n");
+          expect(other.readAsStringSync(), '<body>\n  hey!\n\nfoo\n</body>\n');
         });
       });
     });

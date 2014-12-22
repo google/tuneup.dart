@@ -15,6 +15,10 @@ export 'package:yaml/yaml.dart' show YamlMap;
 
 List cliArgs = [];
 
+final bool isWindows = Platform.isWindows;
+
+final String pathSep = isWindows ? r'\' : '/';
+
 abstract class Command {
   final String name;
   final String description;
@@ -51,37 +55,31 @@ class Project {
         new File(path.join(dir.path, 'pubspec.yaml')).readAsStringSync());
   }
 
-  // TODO: add params to choose the types of files
-  List<File> getSourceFiles() {
+  List<File> getSourceFiles({List<String> extensions: const ['dart']}) {
     List<File> files = [];
 
-    _getFiles(files, dir, recursive: false);
+    _getFiles(files, dir, recursive: false, extensions: extensions);
 
     PUB_FOLDERS.forEach((name) {
       if (FileSystemEntity.isDirectorySync(path.join(dir.path, name))) {
         Directory other = new Directory(path.join(dir.path, name));
-        _getFiles(files, other, recursive: true);
+        _getFiles(files, other, recursive: true, extensions: extensions);
       }
     });
 
     return files;
   }
 
-  void print(Object o) => logger.stdout('${o}');
+  void print(o) => logger.stdout('${o}');
 
-  void _getFiles(List<File> files, Directory dir, {bool recursive: false}) {
+  void _getFiles(List<File> files, Directory dir,
+      {bool recursive: false, List<String> extensions}) {
     dir.listSync(recursive: recursive, followLinks: false).forEach((entity) {
       if (entity is File) {
-        if (_isSourceFile(entity)) {
-          files.add(entity);
-        }
+        String ext = getFileExtension(entity.path).toLowerCase();
+        if (extensions.contains(ext)) files.add(entity);
       }
     });
-  }
-
-  bool _isSourceFile(File file) {
-    // TODO:
-    return file.path.endsWith('.dart') || file.path.endsWith('.html');
   }
 }
 
@@ -98,3 +96,50 @@ class CliLogger {
 }
 
 String pluralize(String word, int count) => count == 1 ? word : '${word}s';
+
+String format(int i) {
+  String str = '${i}';
+  int pos = str.length - 3;
+
+  while (pos > 0) {
+    str = str.substring(0, pos) + ',' + str.substring(pos);
+    pos -= 3;
+  }
+
+  return str;
+}
+
+String getFileExtension(String path) {
+  int index = path.lastIndexOf(pathSep);
+  if (index != -1) path = path.substring(index + 1);
+
+  index = path.lastIndexOf('.');
+  return index != -1 ? path.substring(index + 1) : '';
+}
+
+String discoverEol(String contents) {
+  int index = contents.indexOf('\n');
+
+  if (index != -1) {
+    if (index == 0) {
+      return '\n';
+    } else if (contents[index - 1] == '\r'){
+      return '\r\n';
+    } else {
+      return '\n';
+    }
+  }
+
+  return isWindows ? '\r\n' : '\n';
+}
+
+String relativePath(File file) {
+  String p = file.absolute.path;
+  String current = Directory.current.absolute.path;
+
+  if (p.startsWith(current)) {
+    return p.substring(current.length);
+  } else {
+    return file.path;
+  }
+}
