@@ -38,9 +38,9 @@ void defineTests() {
     test('bad command', () {
       Tuneup tuneup = new Tuneup(logger);
       return tuneup.processArgs(['foo_command'], directory: foo).then((_) {
-        expect(logger.out, contains('A tool to improve visibility into your Dart projects.'));
-        expect(logger.out, contains('commands:'));
-        expect(logger.err, isEmpty);
+        fail('expected exception');
+      }).catchError((e) {
+        expect(logger.out, contains('Could not find an command named'));
       });
     });
 

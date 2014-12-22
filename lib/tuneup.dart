@@ -65,6 +65,12 @@ class Tuneup {
       }
     }
 
+    if (options.command == null && options.rest.isNotEmpty) {
+      var message = 'Could not find an command named "${options.rest.first}".';
+      _out('Error: ${message}');
+      return new Future.error(new ArgError(message));
+    }
+
     if (options['version']) {
       _out('${APP_NAME} version ${APP_VERSION}');
       return new Future.value();
