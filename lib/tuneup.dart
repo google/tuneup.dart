@@ -17,6 +17,7 @@ import 'src/clean_command.dart';
 import 'src/common.dart';
 import 'src/init_command.dart';
 import 'src/stats_command.dart';
+import 'src/trim_command.dart';
 
 export 'src/common.dart' show CliLogger;
 
@@ -26,8 +27,6 @@ const String APP_NAME = "tuneup";
 
 // TODO: --package-root
 
-// TODO: add a trim command
-
 class Tuneup {
   final CliLogger logger;
   final Map<String, Command> _commands = {};
@@ -35,6 +34,7 @@ class Tuneup {
   Tuneup([this.logger = const CliLogger()]) {
     _addCommand(new InitCommand());
     _addCommand(new StatsCommand());
+    _addCommand(new TrimCommand());
     _addCommand(new AnalyzeCommand());
     _addCommand(new CleanCommand());
   }
@@ -97,6 +97,9 @@ class Tuneup {
 
     // stats
     parser.addCommand('stats');
+
+    // trim
+    parser.addCommand('trim');
 
     // analyze
     commandParser = parser.addCommand('analyze');

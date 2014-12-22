@@ -30,7 +30,8 @@ class StatsCommand extends Command {
 
     project.print("Package '${project.name}', version ${version}.");
 
-    List<File> files = project.getSourceFiles();
+    List<File> files = project.getSourceFiles(
+        extensions: ['dart', 'html', 'css']);
 
     Map _stats = {};
 
@@ -47,7 +48,10 @@ class StatsCommand extends Command {
     _Stats all = _stats.values.reduce((a, b)
         => new _Stats(a.files + b.files, a.lines + b.lines));
 
-    project.print('${all.files} source files, ${all.lines} lines of code.');
+    // "Found 288 Dart files and 44,863 lines of code."
+    // TODO: print a breakdown by type
+    project.print('Found ${format(all.files)} source files and '
+        '${format(all.lines)} lines of code.');
 
     return new Future.value();
   }

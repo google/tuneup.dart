@@ -12,6 +12,8 @@ import 'package:path/path.dart' as path;
 
 import 'common.dart';
 
+// TODO: support an optional --dest arg?
+
 class InitCommand extends Command {
   InitCommand() : super('init', 'create a new project');
 
@@ -62,7 +64,7 @@ final String _pubspec = """
 name: {{projectName}}
 version: 0.0.1
 #description: todo:
-#author: <user name> <username@example.com>
+#author: Firt Last <username@example.com>
 #homepage: example.com
 environment:
   sdk: '>=1.0.0 <2.0.0'
