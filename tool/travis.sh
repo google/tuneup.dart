@@ -22,7 +22,7 @@ dart --version
 pub get
 
 # Verify that the libraries are error free.
-dart bin/tuneup.dart analyze
+dart bin/tuneup.dart check
 
 # Run the tests.
 dart test/all.dart
