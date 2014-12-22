@@ -12,7 +12,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-import 'src/analyze_command.dart';
+import 'src/check_command.dart';
 import 'src/clean_command.dart';
 import 'src/common.dart';
 import 'src/init_command.dart';
@@ -33,9 +33,9 @@ class Tuneup {
 
   Tuneup([this.logger = const CliLogger()]) {
     _addCommand(new InitCommand());
+    _addCommand(new CheckCommand());
     _addCommand(new StatsCommand());
     _addCommand(new TrimCommand());
-    _addCommand(new AnalyzeCommand());
     _addCommand(new CleanCommand());
   }
 
@@ -95,16 +95,16 @@ class Tuneup {
     commandParser.addFlag('override', negatable: false,
         help: 'Force generation of the sample project.');
 
+    // check
+    commandParser = parser.addCommand('check');
+    commandParser.addFlag('ignore-infos', negatable: false,
+        help: 'Ignore any info level issues.');
+
     // stats
     parser.addCommand('stats');
 
     // trim
     parser.addCommand('trim');
-
-    // analyze
-    commandParser = parser.addCommand('analyze');
-    commandParser.addFlag('ignore-infos', negatable: false,
-        help: 'Ignore any info level issues.');
 
     // clean
     parser.addCommand('clean');

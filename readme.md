@@ -16,19 +16,19 @@ To install, run:
 Run `tuneup` (or `pub global run tuneup`) to see a list of available commands.
 
 - *init*: create a new project
+- *check*: analyze all the source code in the project - fail if there are any
+   errors
 - *stats*: display metadata and statistics about the project
 - *trim*: trim unwanted whitespace from your source
-- *analyze*: analyze all the source code in the project - fail if there are any
-   errors
 - *clean*: clean the project (remove the build/ directory)
 
-Then run a tuneup command, like analyze:
+Then run a tuneup command, like `check`:
 
-    pub global run tuneup analyze
+    pub global run tuneup check
 
 or,
 
-    tuneup analyze
+    tuneup check
 
 from the root of your project.
 
