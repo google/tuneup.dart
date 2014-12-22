@@ -2,7 +2,7 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library tuneup.analyze_command;
+library tuneup.check_command;
 
 import 'dart:async';
 import 'dart:io';
@@ -18,8 +18,8 @@ import 'package:analyzer/src/generated/java_io.dart';
 
 import 'common.dart';
 
-class AnalyzeCommand extends Command {
-  AnalyzeCommand() : super('analyze',
+class CheckCommand extends Command {
+  CheckCommand() : super('check',
       'analyze all the source code in the project - fail if there are any errors');
 
   Future execute(Project project, [args]) {

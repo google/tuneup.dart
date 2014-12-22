@@ -109,26 +109,26 @@ void defineTests() {
       });
     });
 
-    test('analyze', () {
+    test('check', () {
       Tuneup tuneup = new Tuneup(logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
-        return tuneup.processArgs(['analyze'], directory: foo);
+        return tuneup.processArgs(['check'], directory: foo);
       }).then((_) {
         expect(logger.out, contains('No issues found; analyzed 1 source file in'));
         expect(logger.err, isEmpty);
       });
     });
 
-    test('analyze with errors', () {
+    test('check with errors', () {
       Tuneup tuneup = new Tuneup(logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         File f = new File('foo/bin/helloworld.dart');
         expect(f.existsSync(), true);
         f.writeAsStringSync(_errorText);
       }).then((_) {
-        return tuneup.processArgs(['analyze'], directory: foo);
+        return tuneup.processArgs(['check'], directory: foo);
       }).then((_) {
         fail('expected analysis errors');
       }).catchError((e) {
