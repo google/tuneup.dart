@@ -40,7 +40,6 @@ if [ "$REPO_TOKEN" ]; then
   # --debug for verbose logging
   pub global run dart_coveralls report \
     --token $REPO_TOKEN \
-    --exclude-test-files \
     --retry 3 \
     test/all.dart
 fi
