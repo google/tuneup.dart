@@ -16,7 +16,8 @@ class TrimCommand extends Command {
     new DartFileHandler(),
     new HtmlFileHandler(),
     new JavaScriptFileHandler(),
-    new MarkdownFileHandler()
+    new MarkdownFileHandler(),
+    new YamlFileHandler()
   ];
 
   TrimCommand() : super('trim', 'trim unwanted whitespace from your source');
@@ -178,6 +179,12 @@ class CssFileHandler extends FileHandler {
 
 class DartFileHandler extends FileHandler {
   DartFileHandler() : super(new Set.from(['dart'])) {
+    // TODO: This will not properly handle multi-line strings.
+    lineConverters.add(new RightTrimLine());
+
+    // TODO: This will not properly handle multi-line strings.
+    lineConverters.add(new RemoveDoubleBlankConverter());
+
     postConverters.add(new EndsWithEOLConverter());
   }
 }
@@ -200,6 +207,14 @@ class JavaScriptFileHandler extends FileHandler {
 
 class MarkdownFileHandler extends FileHandler {
   MarkdownFileHandler() : super(new Set.from(['md'])) {
+    lineConverters.add(new RightTrimLine());
+    lineConverters.add(new RemoveDoubleBlankConverter());
+    postConverters.add(new EndsWithEOLConverter());
+  }
+}
+
+class YamlFileHandler extends FileHandler {
+  YamlFileHandler() : super(new Set.from(['yaml'])) {
     lineConverters.add(new RightTrimLine());
     lineConverters.add(new RemoveDoubleBlankConverter());
     postConverters.add(new EndsWithEOLConverter());

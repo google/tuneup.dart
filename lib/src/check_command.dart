@@ -18,6 +18,8 @@ import 'package:analyzer/src/generated/java_io.dart';
 
 import 'common.dart';
 
+// TODO: add more checkers, including a pubspec one
+
 class CheckCommand extends Command {
   CheckCommand() : super('check',
       'analyze all the source code in the project - fail if there are any errors');
