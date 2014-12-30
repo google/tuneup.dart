@@ -50,8 +50,8 @@ class Tuneup {
     File pubspec = joinFile(directory, ['pubspec.yaml']);
     if (!pubspec.existsSync()) {
       String message =
-          'No pubspec.yaml file found. The tuneup command should be run at the '
-          'root of a project.';
+          'No pubspec.yaml file found. The tuneup command should be run from '
+          'the root of a project.';
       _out(message);
       return new Future.error(new ArgError(message));
     }
