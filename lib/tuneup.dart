@@ -47,15 +47,6 @@ class Tuneup {
   Future processArgs(List<String> args, {Directory directory}) {
     if (directory == null) directory = Directory.current;
 
-    File pubspec = joinFile(directory, ['pubspec.yaml']);
-    if (!pubspec.existsSync()) {
-      String message =
-          'No pubspec.yaml file found. The tuneup command should be run from '
-          'the root of a project.';
-      _out(message);
-      return new Future.error(new ArgError(message));
-    }
-
     // TODO: clean up this global state.
     cliArgs = args;
 
@@ -92,6 +83,17 @@ class Tuneup {
     }
 
     Command command = _commands[options.command.name];
+
+    // Verify that we are being run from a project directory.
+    File pubspec = joinFile(directory, ['pubspec.yaml']);
+    if (command.name != 'init' && !pubspec.existsSync()) {
+      String message =
+          'No pubspec.yaml file found. The tuneup command should be run from '
+          'the root of a project.';
+      _out(message);
+      return new Future.error(new ArgError(message));
+    }
+
     Project project = new Project(directory, logger);
     return command.execute(project, options.command);
   }
