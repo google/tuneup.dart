@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:grinder/grinder.dart';
 
 import 'src/check_command.dart';
 import 'src/clean_command.dart';
@@ -45,6 +46,15 @@ class Tuneup {
 
   Future processArgs(List<String> args, {Directory directory}) {
     if (directory == null) directory = Directory.current;
+
+    File pubspec = joinFile(directory, ['pubspec.yaml']);
+    if (!pubspec.existsSync()) {
+      String message =
+          'No pubspec.yaml file found. The tuneup command should be run at the '
+          'root of a project.';
+      _out(message);
+      return new Future.error(new ArgError(message));
+    }
 
     // TODO: clean up this global state.
     cliArgs = args;
