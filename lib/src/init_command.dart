@@ -33,7 +33,7 @@ class InitCommand extends Command {
     }
     projectName = _normalizeProjectName(projectName);
 
-    _writeFile(project, '.gitignote', _gitignore, projectName);
+    _writeFile(project, '.gitignore', _gitignore, projectName);
     _writeFile(project, 'bin/helloworld.dart', _helloworld, projectName);
     _writeFile(project, 'pubspec.yaml', _pubspec, projectName);
 
@@ -64,7 +64,7 @@ final String _pubspec = """
 name: {{projectName}}
 version: 0.0.1
 #description: todo:
-#author: Firt Last <username@example.com>
+#author: First Last <username@example.com>
 #homepage: example.com
 environment:
   sdk: '>=1.0.0 <2.0.0'

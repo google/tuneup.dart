@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.3+1
+- bug fixes to the `init` command
+
 ## 0.0.3
 - added support for yaml files to `trim`
 
