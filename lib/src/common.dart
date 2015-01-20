@@ -11,8 +11,6 @@ import 'package:grinder/grinder.dart' as grinder;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
-export 'package:yaml/yaml.dart' show YamlMap;
-
 List cliArgs = [];
 
 final bool isWindows = Platform.isWindows;

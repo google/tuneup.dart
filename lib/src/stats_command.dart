@@ -24,7 +24,7 @@ class StatsCommand extends Command {
       'display metadata and statistics about the project');
 
   Future execute(Project project, [args]) {
-    YamlMap pubspec = project.pubspec;
+    Map pubspec = project.pubspec;
 
     String version = pubspec.containsKey('version') ? pubspec['version'] : '-';
 
