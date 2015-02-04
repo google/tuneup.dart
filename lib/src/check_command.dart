@@ -133,8 +133,8 @@ class _Error implements Comparable {
 }
 
 class _Logger extends Logger {
-  void logError(String message) => stderr.writeln(message);
+  void logError(String message, [exception]) => stderr.writeln(message);
   void logError2(String message, dynamic exception) => stderr.writeln(message);
-  void logInformation(String message) { }
+  void logInformation(String message, [exception]) { }
   void logInformation2(String message, dynamic exception) { }
 }

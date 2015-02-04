@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.4
+- upgraded to the latest analyzer; now supports async / await syntax
+
 ## 0.0.3+1
 - bug fixes to the `init` command
 
