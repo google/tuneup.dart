@@ -12,11 +12,12 @@ environment:
 dependencies:
   analyzer: '>=0.23.0 <0.24.0'
   args: '>=0.12.0 <0.13.0'
-  grinder: '>=0.6.4 <0.7.0'
+  cli_util: '>=0.0.1 <0.1.0'
   path: '>=1.0.0 <2.0.0'
   yaml: '>=2.0.0 <3.0.0'
 
 dev_dependencies:
+  grinder: '>=0.6.4 <0.7.0'
   unittest: any
 
 # Add the bin/tuneup.dart script to the scripts pub installs.

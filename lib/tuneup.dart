@@ -11,7 +11,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:grinder/grinder.dart';
+import 'package:path/path.dart'as p;
 
 import 'src/check_command.dart';
 import 'src/clean_command.dart';
@@ -85,7 +85,7 @@ class Tuneup {
     Command command = _commands[options.command.name];
 
     // Verify that we are being run from a project directory.
-    File pubspec = joinFile(directory, ['pubspec.yaml']);
+    File pubspec = new File(p.join(directory.path, 'pubspec.yaml'));
     if (command.name != 'init' && !pubspec.existsSync()) {
       String message =
           'No pubspec.yaml file found. The tuneup command should be run from '

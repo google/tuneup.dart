@@ -7,7 +7,7 @@ library tuneup.common;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:grinder/grinder.dart' as grinder;
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -44,7 +44,7 @@ class Project {
     }
   }
 
-  String get sdkPath => grinder.getSdkDir(cliArgs).path;
+  String get sdkPath => cli_util.getSdkDir(cliArgs).path;
 
   String get packagePath => 'packages';
 
