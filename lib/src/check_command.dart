@@ -25,7 +25,7 @@ class CheckCommand extends Command {
       'analyze all the source code in the project - fail if there are any errors');
 
   Future execute(Project project, [args]) {
-    bool ignoreInfos = args['ignore-infos'];
+    bool ignoreInfos = args == null ? false : args['ignore-infos'];
 
     Stopwatch stopwatch = new Stopwatch()..start();
 

@@ -23,7 +23,7 @@ import 'src/trim_command.dart';
 export 'src/common.dart' show CliLogger;
 
 // This version must be updated in tandem with the pubspec version.
-const String APP_VERSION = '0.0.4';
+const String APP_VERSION = '0.0.5-dev';
 const String APP_NAME = 'tuneup';
 
 // TODO: --package-root
@@ -77,25 +77,45 @@ class Tuneup {
       return new Future.value();
     }
 
-    if (options['help'] || options.command == null) {
+    if (options['help']) {
       _usage(argParser);
       return new Future.value();
     }
 
-    Command command = _commands[options.command.name];
-
-    // Verify that we are being run from a project directory.
-    File pubspec = new File(p.join(directory.path, 'pubspec.yaml'));
-    if (command.name != 'init' && !pubspec.existsSync()) {
-      String message =
-          'No pubspec.yaml file found. The tuneup command should be run from '
-          'the root of a project.';
-      _out(message);
-      return new Future.error(new ArgError(message));
-    }
-
     Project project = new Project(directory, logger);
-    return command.execute(project, options.command);
+    File pubspec = new File(p.join(directory.path, 'pubspec.yaml'));
+
+    if (options.command == null) {
+      // Run 'check'.
+      _out("Running the 'check' command; run with --help for a list of "
+          "available commands.");
+
+      Command command = _commands['check'];
+
+      // Verify that we are being run from a project directory.
+      if (!pubspec.existsSync()) {
+        String message =
+            'No pubspec.yaml file found. The tuneup command should be run from '
+            'the root of a project.';
+        _out(message);
+        return new Future.error(new ArgError(message));
+      }
+
+      return command.execute(project, null);
+    } else {
+      Command command = _commands[options.command.name];
+
+      // Verify that we are being run from a project directory.
+      if (command.name != 'init' && !pubspec.existsSync()) {
+        String message =
+            'No pubspec.yaml file found. The tuneup command should be run from '
+            'the root of a project.';
+        _out(message);
+        return new Future.error(new ArgError(message));
+      }
+
+      return command.execute(project, options.command);
+    }
   }
 
   ArgParser _createArgParser() {
