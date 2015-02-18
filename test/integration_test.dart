@@ -28,9 +28,12 @@ void defineTests() {
 
     test('no args', () {
       Tuneup tuneup = new Tuneup(logger);
-      return tuneup.processArgs([], directory: foo).then((_) {
-        expect(logger.out, contains('A tool to improve visibility into your Dart projects.'));
-        expect(logger.out, contains('commands:'));
+      return tuneup.processArgs(['init'], directory: foo).then((_) {
+        expect(new File('foo/bin/helloworld.dart').existsSync(), true);
+      }).then((_) {
+        return tuneup.processArgs(['check'], directory: foo);
+      }).then((_) {
+        expect(logger.out, contains('No issues found; analyzed 1 source file in'));
         expect(logger.err, isEmpty);
       });
     });
