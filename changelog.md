@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.5
+- made `check` the default command
+
 ## 0.0.4
 - upgraded to the latest analyzer; now supports async / await syntax
 
