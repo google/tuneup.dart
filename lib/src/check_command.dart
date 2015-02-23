@@ -18,7 +18,13 @@ import 'package:analyzer/src/generated/java_io.dart';
 
 import 'common.dart';
 
-// TODO: add more checkers, including a pubspec one
+// TODO: if a package is declared in the pubspec but not used, warn
+
+// TODO: if a package is declared in dev, but used in lib or bin, warn
+
+// TODO: if a package is declared in reg. deps, but only used outside of bin/ and lib/, warn
+
+// TODO: if a package is used, but not referenced in the pubspec, warn
 
 class CheckCommand extends Command {
   CheckCommand() : super('check',
@@ -61,12 +67,12 @@ class CheckCommand extends Command {
     stopwatch.stop();
 
     List<_Error> errors = errorInfos
-      .expand((AnalysisErrorInfo info) {
-        return info.errors.map((error)
-            => new _Error(error, info.lineInfo, project.dir.path));
-      })
-      .where((_Error error) => error.errorType != ErrorType.TODO)
-      .toList();
+        .expand((AnalysisErrorInfo info) {
+          return info.errors.map((error)
+              => new _Error(error, info.lineInfo, project.dir.path));
+        })
+        .where((_Error error) => error.errorType != ErrorType.TODO)
+        .toList();
 
     int ignoredCount = 0;
 
