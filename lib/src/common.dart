@@ -141,3 +141,42 @@ String relativePath(File file) {
     return file.path;
   }
 }
+
+/**
+ * Run the given Dart script in a new process.
+ */
+void runDartScript(String script,
+    {List<String> arguments : const [],
+     String packageRoot,
+     String workingDirectory}) {
+  List<String> args = [];
+
+  if (packageRoot != null) {
+    args.add('--package-root=${packageRoot}');
+  }
+
+  args.add(script);
+  args.addAll(arguments);
+
+  runProcess('dart', arguments: args, workingDirectory: workingDirectory);
+}
+
+/**
+ * Run the given executable, with optional arguments and working directory.
+ */
+void runProcess(String executable,
+    {List<String> arguments : const [],
+     String workingDirectory}) {
+  ProcessResult result = Process.runSync(
+      executable, arguments, workingDirectory: workingDirectory);
+
+  print(result.stdout.trim());
+  
+  if (result.stderr != null && !result.stderr.isEmpty) {
+    print(result.stderr);
+  }
+
+  if (result.exitCode != 0) {
+    throw "${executable} failed with a return code of ${result.exitCode}";
+  }
+}

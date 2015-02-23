@@ -7,7 +7,6 @@ library tuneup.init_command;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
@@ -37,10 +36,9 @@ class InitCommand extends Command {
     _writeFile(project, 'bin/helloworld.dart', _helloworld, projectName);
     _writeFile(project, 'pubspec.yaml', _pubspec, projectName);
 
-    project.print("running...");
+    project.print("running bin/helloworld.dart...");
     project.print('');
-    runDartScript(new _GrinderContext(),
-        'bin/helloworld.dart', workingDirectory: project.dir.path);
+    runDartScript('bin/helloworld.dart', workingDirectory: project.dir.path);
 
     return new Future.value();
   }
@@ -121,15 +119,4 @@ String _normalizeProjectName(String name) {
   }
 
   return name;
-}
-
-class _GrinderContext implements GrinderContext {
-  void log(String message) => print(message);
-  void fail(String message) => throw message;
-
-  void set grinder(Grinder _grinder) { }
-  Grinder get grinder => null;
-
-  void set task(GrinderTask _task) { }
-  GrinderTask get task => null;
 }
