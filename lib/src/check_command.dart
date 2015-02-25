@@ -45,7 +45,7 @@ class CheckCommand extends Command {
     context.sourceFactory = new SourceFactory(resolvers);
     AnalysisEngine.instance.logger = new _Logger();
 
-    project.print('Analyzing ${project.name}...');
+    project.print('Checking project ${project.name}...');
 
     List<Source> sources = [];
     ChangeSet changeSet = new ChangeSet();
