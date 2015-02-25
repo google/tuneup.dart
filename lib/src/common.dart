@@ -171,7 +171,7 @@ void runProcess(String executable,
       executable, arguments, workingDirectory: workingDirectory);
 
   print(result.stdout.trim());
-  
+
   if (result.stderr != null && !result.stderr.isEmpty) {
     print(result.stderr);
   }
