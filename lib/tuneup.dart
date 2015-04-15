@@ -87,8 +87,8 @@ class Tuneup {
 
     if (options.command == null) {
       // Run 'check'.
-      _out("Running the 'check' command; run with --help for a list of "
-          "available commands.");
+      _out("Running the 'check' command (run with --help for a list of "
+          "available commands).");
 
       Command command = _commands['check'];
 
