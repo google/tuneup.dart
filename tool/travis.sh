@@ -8,10 +8,10 @@
 set -e
 
 # Verify that the libraries are error free.
-dart bin/tuneup.dart check
+dart -c bin/tuneup.dart check
 
 # Run the tests.
-dart test/all.dart
+dart -c test/all.dart
 
 # Install dart_coveralls; gather and send coverage data.
 if [ "$REPO_TOKEN" ]; then

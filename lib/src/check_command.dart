@@ -57,6 +57,12 @@ class CheckCommand extends Command {
     }
     context.applyChanges(changeSet);
 
+    // Ensure that the analysis engine performs all remaining work.
+    AnalysisResult result = context.performAnalysisTask();
+    while (result.hasMoreWork) {
+      result = context.performAnalysisTask();
+    }
+
     List<AnalysisErrorInfo> errorInfos = [];
 
     for (Source source in sources) {
