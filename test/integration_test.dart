@@ -6,9 +6,11 @@ library tuneup.integration_test;
 
 import 'dart:io';
 
+import 'package:test/test.dart';
 import 'package:tuneup/tuneup.dart';
 import 'package:tuneup/src/common.dart';
-import 'package:unittest/unittest.dart';
+
+void main() => defineTests();
 
 void defineTests() {
   group('integration tests', () {

@@ -4,8 +4,10 @@
 
 library tuneup.common_test;
 
+import 'package:test/test.dart';
 import 'package:tuneup/src/common.dart';
-import 'package:unittest/unittest.dart';
+
+void main() => defineTests();
 
 void defineTests() {
   group('common', () {
