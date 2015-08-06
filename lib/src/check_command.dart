@@ -51,7 +51,7 @@ class CheckCommand extends Command {
     ChangeSet changeSet = new ChangeSet();
     for (File file in project.getSourceFiles()) {
       JavaFile sourceFile = new JavaFile(file.path);
-      Source source = new FileBasedSource.con2(sourceFile.toURI(), sourceFile);
+      Source source = new FileBasedSource(sourceFile, sourceFile.toURI());
       sources.add(source);
       changeSet.addedSource(source);
     }
