@@ -7,7 +7,7 @@ author: Devon Carew <devoncarew@google.com>
 homepage: https://github.com/google/tuneup.dart
 
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=1.8.0 <2.0.0'
 
 dependencies:
   analyzer: ^0.26.0

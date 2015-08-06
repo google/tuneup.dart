@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.0
+- upgraded to `analyzer` 0.26.0 and `test` 0.12.0
+
 ## 0.0.5
 - made `check` the default command
 
