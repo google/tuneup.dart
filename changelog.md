@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+- added support for `.packages` files
+- added support for SDK extensions
+
 ## 0.1.0
 - upgraded to `analyzer` 0.26.0 and `test` 0.12.0
 
