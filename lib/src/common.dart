@@ -50,6 +50,8 @@ class Project {
 
   Directory get packageDir => new Directory(packagePath);
 
+  File get packagesFile => new File('.packages');
+
   yaml.YamlMap get pubspec {
     return yaml.loadYaml(
         new File(p.join(dir.path, 'pubspec.yaml')).readAsStringSync());
