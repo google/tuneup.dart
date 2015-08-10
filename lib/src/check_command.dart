@@ -7,7 +7,10 @@ library tuneup.check_command;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/file_system/file_system.dart' hide File;
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -15,6 +18,8 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+
+import 'package:path/path.dart' as p;
 
 import 'common.dart';
 
@@ -41,7 +46,9 @@ class CheckCommand extends Command {
     List<UriResolver> resolvers = [
         new DartUriResolver(sdk),
         new FileUriResolver(),
-        new PackageUriResolver([new JavaFile(project.packagePath)])];
+        new PackageUriResolver([new JavaFile(project.packagePath)]),
+        new SdkExtUriResolver(_createPackageMap(project))
+    ];
     context.sourceFactory = new SourceFactory(resolvers);
     AnalysisEngine.instance.logger = new _Logger();
 
@@ -107,6 +114,23 @@ class CheckCommand extends Command {
     }
 
     return errors.isEmpty ? new Future.value() : new Future.error(new ExitCode(1));
+  }
+
+  Map<String, List<Folder>> _createPackageMap(Project project) {
+    Map<String, List<Folder>> m = {};
+    Directory dir = project.packageDir;
+
+    if (dir.existsSync()) {
+      for (FileSystemEntity entity in dir.listSync(followLinks: false)) {
+        if (entity is Link) {
+          String name = p.basename(entity.path);
+          String target = entity.targetSync();
+          m[name] = [PhysicalResourceProvider.INSTANCE.getFolder(target)];
+        }
+      }
+    }
+
+    return m;
   }
 }
 
