@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cli_util/cli_util.dart' as cli_util;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart' as yaml;
 
 List cliArgs = [];
@@ -40,7 +40,7 @@ class Project {
     if (pubspec.containsKey('name'))  {
       return pubspec['name'];
     } else {
-      return path.basename(dir.path);
+      return p.basename(dir.path);
     }
   }
 
@@ -48,9 +48,13 @@ class Project {
 
   String get packagePath => 'packages';
 
+  Directory get packageDir => new Directory(packagePath);
+
+  File get packagesFile => new File('.packages');
+
   yaml.YamlMap get pubspec {
     return yaml.loadYaml(
-        new File(path.join(dir.path, 'pubspec.yaml')).readAsStringSync());
+        new File(p.join(dir.path, 'pubspec.yaml')).readAsStringSync());
   }
 
   List<File> getSourceFiles({List<String> extensions: const ['dart']}) {
@@ -59,8 +63,8 @@ class Project {
     _getFiles(files, dir, recursive: false, extensions: extensions);
 
     PUB_FOLDERS.forEach((name) {
-      if (FileSystemEntity.isDirectorySync(path.join(dir.path, name))) {
-        Directory other = new Directory(path.join(dir.path, name));
+      if (FileSystemEntity.isDirectorySync(p.join(dir.path, name))) {
+        Directory other = new Directory(p.join(dir.path, name));
         _getFiles(files, other, recursive: true, extensions: extensions);
       }
     });

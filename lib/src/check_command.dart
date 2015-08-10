@@ -7,7 +7,10 @@ library tuneup.check_command;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/file_system/file_system.dart' hide File;
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -15,6 +18,9 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+import 'package:package_config/discovery.dart' as pkgDiscovery;
+import 'package:package_config/packages.dart' show Packages;
+import 'package:path/path.dart' as p;
 
 import 'common.dart';
 
@@ -41,8 +47,21 @@ class CheckCommand extends Command {
     List<UriResolver> resolvers = [
         new DartUriResolver(sdk),
         new FileUriResolver(),
-        new PackageUriResolver([new JavaFile(project.packagePath)])];
-    context.sourceFactory = new SourceFactory(resolvers);
+        new PackageUriResolver([new JavaFile(project.packagePath)])
+    ];
+
+    Packages packages;
+
+    if (project.packagesFile.existsSync()) {
+      packages = _discoverPackagespec(project.dir);
+      resolvers.add(
+        new SdkExtUriResolver(_createPackageFilePackageMap(packages)));
+    } else if (project.packageDir.existsSync()) {
+      resolvers.add(
+        new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
+    }
+
+    context.sourceFactory = new SourceFactory(resolvers, packages);
     AnalysisEngine.instance.logger = new _Logger();
 
     project.print('Checking project ${project.name}...');
@@ -107,6 +126,49 @@ class CheckCommand extends Command {
     }
 
     return errors.isEmpty ? new Future.value() : new Future.error(new ExitCode(1));
+  }
+
+
+  Map<String, List<Folder>> _createPackageFilePackageMap(Packages packages) {
+    Map<String, List<Folder>> m = {};
+    Map packageMap = packages.asMap();
+
+    for (String name in packageMap.keys) {
+      Uri uri = packageMap[name];
+      if (uri.scheme == 'file') {
+        String file = uri.path;
+        m[name] = [PhysicalResourceProvider.INSTANCE.getFolder(file)];
+      }
+    }
+
+    return m;
+  }
+
+  Map<String, List<Folder>> _createPackagesFolderPackageMap(Project project) {
+    Map<String, List<Folder>> m = {};
+
+    for (FileSystemEntity entity in project.packageDir.listSync(followLinks: false)) {
+      if (entity is Link) {
+        String name = p.basename(entity.path);
+        String target = entity.targetSync();
+        m[name] = [PhysicalResourceProvider.INSTANCE.getFolder(target)];
+      }
+    }
+
+    return m;
+  }
+
+  /// Return discovered packagespec or `null` if none is found.
+  Packages _discoverPackagespec(Directory dir) {
+    try {
+      Packages packages =
+          pkgDiscovery.findPackagesFromFile(new Uri.directory(dir.path));
+      if (packages != Packages.noPackages) return packages;
+    } catch (_) {
+      // Ignore and fall through to null.
+    }
+
+    return null;
   }
 }
 
