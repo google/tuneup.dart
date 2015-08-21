@@ -24,14 +24,6 @@ import 'package:path/path.dart' as p;
 
 import 'common.dart';
 
-// TODO: if a package is declared in the pubspec but not used, warn
-
-// TODO: if a package is declared in dev, but used in lib or bin, warn
-
-// TODO: if a package is declared in reg. deps, but only used outside of bin/ and lib/, warn
-
-// TODO: if a package is used, but not referenced in the pubspec, warn
-
 class CheckCommand extends Command {
   CheckCommand() : super('check',
       'analyze all the source code in the project - fail if there are any errors');
@@ -46,7 +38,6 @@ class CheckCommand extends Command {
     context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
     List<UriResolver> resolvers = [
         new DartUriResolver(sdk),
-        new FileUriResolver(),
         new PackageUriResolver([new JavaFile(project.packagePath)])
     ];
 
@@ -61,6 +52,8 @@ class CheckCommand extends Command {
         new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
     }
 
+    resolvers.add(new FileUriResolver());
+
     context.sourceFactory = new SourceFactory(resolvers, packages);
     AnalysisEngine.instance.logger = new _Logger();
 
@@ -71,6 +64,8 @@ class CheckCommand extends Command {
     for (File file in project.getSourceFiles()) {
       JavaFile sourceFile = new JavaFile(file.path);
       Source source = new FileBasedSource(sourceFile, sourceFile.toURI());
+      Uri uri = context.sourceFactory.restoreUri(source);
+      if (uri != null) source = new FileBasedSource(sourceFile, uri);
       sources.add(source);
       changeSet.addedSource(source);
     }
