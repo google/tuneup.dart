@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+- fixed an issue analyzing libraries that were referred to by both self-references
+  (package: references) and relative path references
+
 ## 0.1.1
 - added support for `.packages` files
 - added support for SDK extensions
