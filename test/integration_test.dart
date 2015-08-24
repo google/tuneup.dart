@@ -33,6 +33,7 @@ void defineTests() {
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
+        _setupPub();
         return tuneup.processArgs(['check'], directory: foo);
       }).then((_) {
         expect(logger.out, contains('No issues found; analyzed 1 source file in'));
@@ -119,6 +120,7 @@ void defineTests() {
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
+        _setupPub();
         return tuneup.processArgs(['check'], directory: foo);
       }).then((_) {
         expect(logger.out, contains('No issues found; analyzed 1 source file in'));
@@ -133,6 +135,7 @@ void defineTests() {
         expect(f.existsSync(), true);
         f.writeAsStringSync(_errorText);
       }).then((_) {
+        _setupPub();
         return tuneup.processArgs(['check'], directory: foo);
       }).then((_) {
         fail('expected analysis errors');
@@ -156,6 +159,12 @@ void defineTests() {
       });
     });
   });
+}
+
+void _setupPub() {
+  File pubspec = new File('foo/pubspec.yaml');
+  pubspec.writeAsStringSync('name: foo\n');
+  Process.runSync('pub', ['get'], workingDirectory: 'foo');
 }
 
 class _Logger implements CliLogger {
