@@ -133,7 +133,7 @@ class Tuneup {
     parser.addFlag('version', negatable: false,
         help: 'Display the application version.');
     parser.addOption('dart-sdk', hide: true, help: 'the path to the sdk');
-    parser.addOption('directory', help: 'the project directory to analyze');
+    parser.addOption('directory', help: 'The project directory to analyze.');
 
     // init
     ArgParser commandParser = parser.addCommand('init');
