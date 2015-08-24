@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+- upgraded the analyzer version to capture a change to analyzing unnamed
+  libraries
+- added a `--directory` flag to support analyzing something besides the current
+  working directory
+
 ## 0.1.2
 - fixed an issue analyzing libraries that were referred to by both self-references
   (package: references) and relative path references
