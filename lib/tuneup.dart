@@ -23,7 +23,7 @@ import 'src/trim_command.dart';
 export 'src/common.dart' show CliLogger;
 
 // This version must be updated in tandem with the pubspec version.
-const String APP_VERSION = '0.1.2';
+const String APP_VERSION = '0.1.3';
 const String APP_NAME = 'tuneup';
 
 class Tuneup {
@@ -80,6 +80,16 @@ class Tuneup {
       return new Future.value();
     }
 
+    if (options['directory'] != null) {
+      Directory dir = new Directory(options['directory']);
+      if (!dir.existsSync()) {
+        var message = 'Directory specified does not exist "${directory.path}".';
+        _out('Error: ${message}');
+        return new Future.error(new ArgError(message));
+      }
+      directory = dir;
+    }
+
     Project project = new Project(directory, logger);
     File pubspec = new File(p.join(directory.path, 'pubspec.yaml'));
 
@@ -119,12 +129,11 @@ class Tuneup {
   ArgParser _createArgParser() {
     ArgParser parser = new ArgParser();
 
-    parser.addFlag('help', abbr: 'h', negatable: false,
-        help: 'Help!');
+    parser.addFlag('help', abbr: 'h', negatable: false, help: 'Help!');
     parser.addFlag('version', negatable: false,
         help: 'Display the application version.');
-    parser.addOption('dart-sdk', hide: true,
-        help: 'the path to the sdk');
+    parser.addOption('dart-sdk', hide: true, help: 'the path to the sdk');
+    parser.addOption('directory', help: 'The project directory to analyze.');
 
     // init
     ArgParser commandParser = parser.addCommand('init');

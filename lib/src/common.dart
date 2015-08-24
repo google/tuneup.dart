@@ -46,11 +46,11 @@ class Project {
 
   String get sdkPath => cli_util.getSdkDir(cliArgs).path;
 
-  String get packagePath => 'packages';
+  String get packagePath => p.join(dir.path, 'packages');
 
   Directory get packageDir => new Directory(packagePath);
 
-  File get packagesFile => new File('.packages');
+  File get packagesFile => new File(p.join(dir.path, '.packages'));
 
   yaml.YamlMap get pubspec {
     return yaml.loadYaml(
