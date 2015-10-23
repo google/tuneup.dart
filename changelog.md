@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.3+1
+- fixed an issue with the `check` command on windows
+
 ## 0.1.3
 - upgraded the analyzer version to capture a change to analyzing unnamed
   libraries

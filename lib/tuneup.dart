@@ -23,8 +23,8 @@ import 'src/trim_command.dart';
 export 'src/common.dart' show CliLogger;
 
 // This version must be updated in tandem with the pubspec version.
-const String APP_VERSION = '0.1.3';
-const String APP_NAME = 'tuneup';
+const String appVersion = '0.1.3+1';
+const String appName = 'tuneup';
 
 class Tuneup {
   final CliLogger logger;
@@ -71,7 +71,7 @@ class Tuneup {
     }
 
     if (options['version']) {
-      _out('${APP_NAME} version ${APP_VERSION}');
+      _out('${appName} version ${appVersion}');
       return new Future.value();
     }
 
@@ -160,7 +160,7 @@ class Tuneup {
   void _usage(ArgParser argParser) {
     final String indent = '        ';
 
-    _out('usage: ${APP_NAME} <command>');
+    _out('usage: ${appName} <command>');
     _out('A tool to improve visibility into your Dart projects.');
     _out('');
     _out('options:');

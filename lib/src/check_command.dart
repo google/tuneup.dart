@@ -37,8 +37,7 @@ class CheckCommand extends Command {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
     List<UriResolver> resolvers = [
-        new DartUriResolver(sdk),
-        new PackageUriResolver([new JavaFile(project.packagePath)])
+        new DartUriResolver(sdk)
     ];
 
     Packages packages;
@@ -48,6 +47,7 @@ class CheckCommand extends Command {
       resolvers.add(
         new SdkExtUriResolver(_createPackageFilePackageMap(packages)));
     } else if (project.packageDir.existsSync()) {
+      new PackageUriResolver([new JavaFile(project.packagePath)]);
       resolvers.add(
         new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
     }
