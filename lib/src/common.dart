@@ -7,7 +7,12 @@ library tuneup.common;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/file_system/file_system.dart' as analysisFile show File;
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
+import 'package:quiver/pattern.dart' show Glob;
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -34,7 +39,33 @@ class Project {
   final Directory dir;
   final CliLogger logger;
 
-  Project(this.dir, this.logger);
+  List<Glob> _excludes = [];
+
+  Project(this.dir, this.logger) {
+    String name = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+    analysisFile.File file = PhysicalResourceProvider.INSTANCE.getFile(name);
+    if (!file.exists) return;
+
+    AnalysisOptionsProvider analysisOptions = new AnalysisOptionsProvider();
+    Map options = analysisOptions.getOptionsFromFile(file);
+
+    if (options == null || options.isEmpty) return;
+
+    // Handle excludes.
+    // analyzer:
+    //   exclude:
+    //     - test/data/*
+    var analyzerSection = options['analyzer'];
+    if (analyzerSection is Map) {
+      var excludes = analyzerSection['exclude'];
+      if (excludes is List) {
+        _excludes.addAll(excludes
+          .where((ex) => ex is String)
+          .map((st) => new Glob(st))
+        );
+      }
+    }
+  }
 
   String get name {
     if (pubspec.containsKey('name'))  {
@@ -76,8 +107,22 @@ class Project {
 
   void _getFiles(List<File> files, Directory dir,
       {bool recursive: false, List<String> extensions}) {
+    String projectPath = this.dir.path;
+    if (!projectPath.endsWith(Platform.pathSeparator)) {
+      projectPath += Platform.pathSeparator;
+    }
+
     dir.listSync(recursive: recursive, followLinks: false).forEach((entity) {
       if (entity is File) {
+        String shortPath = entity.path;
+        if (shortPath.startsWith(projectPath)) {
+          shortPath = shortPath.substring(projectPath.length);
+        }
+
+        for (Glob glob in _excludes) {
+          if (glob.hasMatch(shortPath)) return;
+        }
+
         String ext = getFileExtension(entity.path).toLowerCase();
         if (extensions.contains(ext)) files.add(entity);
       }
