@@ -120,9 +120,7 @@ class Project {
         }
 
         for (Glob glob in _excludes) {
-          if (glob.hasMatch(shortPath)) {
-            return;
-          }
+          if (glob.hasMatch(shortPath)) return;
         }
 
         String ext = getFileExtension(entity.path).toLowerCase();
