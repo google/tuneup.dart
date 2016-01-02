@@ -27,9 +27,9 @@ import 'package:path/path.dart' as p;
 
 import 'common.dart';
 
-// TODO: Support strong mode?
-
 class CheckCommand extends Command {
+  bool _useStrongMode = false;
+
   CheckCommand() : super('check',
       'analyze all the source code in the project - fail if there are any errors');
 
@@ -42,7 +42,8 @@ class CheckCommand extends Command {
 
     DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(project.sdkPath));
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.cacheSize = 512;
     AnalysisEngine.instance.processRequiredPlugins();
 
     List<UriResolver> resolvers = [
@@ -68,7 +69,17 @@ class CheckCommand extends Command {
 
     _processAnalysisOptions(context);
 
-    project.print('Checking project ${project.name}...');
+    if (_useStrongMode) {
+      options.strongMode = _useStrongMode;
+    }
+
+    context.analysisOptions = options;
+
+    if (_useStrongMode) {
+      project.print('Checking project ${project.name} (using strong mode)...');
+    } else {
+      project.print('Checking project ${project.name}...');
+    }
 
     List<Source> sources = [];
     ChangeSet changeSet = new ChangeSet();
@@ -108,7 +119,7 @@ class CheckCommand extends Command {
     int ignoredCount = 0;
 
     if (ignoreInfos) {
-      List newErrors = errors.where(
+      List<_Error> newErrors = errors.where(
           (e) => e.severity != ErrorSeverity.INFO.ordinal).toList();
       ignoredCount = errors.length - newErrors.length;
       errors = newErrors;
@@ -137,7 +148,7 @@ class CheckCommand extends Command {
 
   Map<String, List<Folder>> _createPackageFilePackageMap(Packages packages) {
     Map<String, List<Folder>> m = {};
-    Map packageMap = packages.asMap();
+    Map<String, Uri> packageMap = packages.asMap();
 
     for (String name in packageMap.keys) {
       Uri uri = packageMap[name];
@@ -183,7 +194,7 @@ class CheckCommand extends Command {
     if (!file.exists) return;
 
     AnalysisOptionsProvider analysisOptions = new AnalysisOptionsProvider();
-    Map options = analysisOptions.getOptionsFromFile(file);
+    Map<String, dynamic> options = analysisOptions.getOptionsFromFile(file);
 
     if (options == null || options.isEmpty) return;
 
@@ -191,6 +202,17 @@ class CheckCommand extends Command {
     List processors = AnalysisEngine.instance.optionsPlugin.optionsProcessors;
     processors.forEach((processor) => processor.optionsProcessed(context, options));
     configureContextOptions(context, options);
+
+    // Handle strong mode.
+    // analyzer:
+    //   strong-mode: true
+    var analyzerSection = options['analyzer'];
+    if (analyzerSection is Map) {
+      var strongMode = analyzerSection['strong-mode'];
+      if (strongMode is bool) {
+        _useStrongMode = strongMode;
+      }
+    }
   }
 }
 

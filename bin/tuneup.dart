@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:tuneup/tuneup.dart';
 import 'package:tuneup/src/common.dart';
 
-void main(List args) {
+void main(List<String> args) {
   Tuneup tuneup = new Tuneup();
   tuneup.processArgs(args).catchError((e, st) {
     if (e is ArgError) {
