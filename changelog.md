@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4
+- add support for .analysis_options file excludes
+- add support for strong mode analysis
+
 ## 0.1.3+1
 - fixed an issue with the `check` command on windows
 

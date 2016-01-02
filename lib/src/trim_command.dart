@@ -23,7 +23,7 @@ class TrimCommand extends Command {
   TrimCommand() : super('trim', 'trim unwanted whitespace from your source');
 
   Future execute(Project project, [args]) {
-    List<String> ext = _handlers.expand((h) => h.types).toList();
+    List<String> ext = new List.from(_handlers.expand((h) => h.types));
     List<File> files = project.getSourceFiles(extensions: ext);
 
     int modifiedCount = 0;

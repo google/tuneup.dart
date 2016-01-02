@@ -16,7 +16,7 @@ import 'package:quiver/pattern.dart' show Glob;
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart' as yaml;
 
-List cliArgs = [];
+List<String> cliArgs = [];
 
 final bool isWindows = Platform.isWindows;
 
