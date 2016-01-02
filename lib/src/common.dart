@@ -7,13 +7,13 @@ library tuneup.common;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/file_system/file_system.dart' as analysisFile show File;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
-import 'package:quiver/pattern.dart' show Glob;
 import 'package:path/path.dart' as p;
+import 'package:quiver/pattern.dart' show Glob;
 import 'package:yaml/yaml.dart' as yaml;
 
 List<String> cliArgs = [];

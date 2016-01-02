@@ -7,8 +7,8 @@ library tuneup.integration_test;
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:tuneup/tuneup.dart';
 import 'package:tuneup/src/common.dart';
+import 'package:tuneup/tuneup.dart';
 
 void main() => defineTests();
 
