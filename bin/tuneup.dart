@@ -6,8 +6,8 @@ library tuneup.main;
 
 import 'dart:io';
 
-import 'package:tuneup/tuneup.dart';
 import 'package:tuneup/src/common.dart';
+import 'package:tuneup/tuneup.dart';
 
 void main(List<String> args) {
   Tuneup tuneup = new Tuneup();

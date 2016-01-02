@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.0
+- bump version to 0.2.0
+
 ## 0.1.4
 - add support for .analysis_options file excludes
 - add support for strong mode analysis
