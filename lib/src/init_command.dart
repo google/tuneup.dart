@@ -11,8 +11,6 @@ import 'package:path/path.dart' as path;
 
 import 'common.dart';
 
-// TODO: support an optional --dest arg?
-
 class InitCommand extends Command {
   InitCommand() : super('init', 'create a new project');
 

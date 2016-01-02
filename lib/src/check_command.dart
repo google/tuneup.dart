@@ -7,22 +7,27 @@ library tuneup.check_command;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/file_system/file_system.dart' hide File;
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/file_system/file_system.dart' hide File;
+import 'package:analyzer/file_system/file_system.dart' as analysisFile show File;
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/discovery.dart' as pkgDiscovery;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:path/path.dart' as p;
 
 import 'common.dart';
+
+// TODO: Support strong mode?
 
 class CheckCommand extends Command {
   CheckCommand() : super('check',
@@ -33,11 +38,15 @@ class CheckCommand extends Command {
 
     Stopwatch stopwatch = new Stopwatch()..start();
 
+    AnalysisEngine.instance.taskManager;
+
     DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(project.sdkPath));
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
+    AnalysisEngine.instance.processRequiredPlugins();
+
     List<UriResolver> resolvers = [
-        new DartUriResolver(sdk)
+      new DartUriResolver(sdk)
     ];
 
     Packages packages;
@@ -56,6 +65,8 @@ class CheckCommand extends Command {
 
     context.sourceFactory = new SourceFactory(resolvers, packages);
     AnalysisEngine.instance.logger = new _Logger();
+
+    _processAnalysisOptions(context);
 
     project.print('Checking project ${project.name}...');
 
@@ -164,6 +175,22 @@ class CheckCommand extends Command {
     }
 
     return null;
+  }
+
+  void _processAnalysisOptions(AnalysisContext context) {
+    String name = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+    analysisFile.File file = PhysicalResourceProvider.INSTANCE.getFile(name);
+    if (!file.exists) return;
+
+    AnalysisOptionsProvider analysisOptions = new AnalysisOptionsProvider();
+    Map options = analysisOptions.getOptionsFromFile(file);
+
+    if (options == null || options.isEmpty) return;
+
+    // Handle options processors.
+    List processors = AnalysisEngine.instance.optionsPlugin.optionsProcessors;
+    processors.forEach((processor) => processor.optionsProcessed(context, options));
+    configureContextOptions(context, options);
   }
 }
 

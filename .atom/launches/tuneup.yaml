@@ -1,0 +1,8 @@
+# Cli launch configuration for bin/tuneup.dart.
+type: cli
+path: bin/tuneup.dart
+
+cli:
+  args: 
+  checked: true
+  debug: true

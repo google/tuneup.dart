@@ -11,14 +11,6 @@ import 'package:path/path.dart' as path;
 
 import 'common.dart';
 
-// TODO: direct dependencies
-
-// TODO: indirect dependencies
-
-// TODO: breakdown of dart/html/...
-
-// TODO: breakdown of which lines in what dirs
-
 class StatsCommand extends Command {
   StatsCommand() : super('stats',
       'display metadata and statistics about the project');
