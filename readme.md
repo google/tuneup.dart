@@ -13,11 +13,11 @@ To install, run:
 
 ## Running
 
-Run `tuneup` (or `pub global run tuneup`) to see a list of available commands.
+Run `tuneup --help` (or `pub global run tuneup --help`) to see a list of available commands.
 
 - *init*: create a new project
 - *check*: analyze all the source code in the project - fail if there are any
-   errors
+   errors (This is the default action)
 - *stats*: display metadata and statistics about the project
 - *trim*: trim unwanted whitespace from your source
 - *clean*: clean the project (remove the build/ directory)
