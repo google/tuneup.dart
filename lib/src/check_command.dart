@@ -29,6 +29,8 @@ import 'common.dart';
 
 class CheckCommand extends Command {
   bool _useStrongMode = false;
+  bool _enableSuperMixins = false;
+  bool _enableConditionalDirectives = false;
 
   CheckCommand() : super('check',
       'analyze all the source code in the project - fail if there are any errors');
@@ -69,9 +71,9 @@ class CheckCommand extends Command {
 
     _processAnalysisOptions(context);
 
-    if (_useStrongMode) {
-      options.strongMode = _useStrongMode;
-    }
+    if (_useStrongMode) options.strongMode = _useStrongMode;
+    if (_enableSuperMixins) options.enableSuperMixins = _enableSuperMixins;
+    if (_enableConditionalDirectives) options.enableConditionalDirectives = _enableConditionalDirectives;
 
     context.analysisOptions = options;
 
@@ -208,9 +210,17 @@ class CheckCommand extends Command {
     //   strong-mode: true
     var analyzerSection = options['analyzer'];
     if (analyzerSection is Map) {
-      var strongMode = analyzerSection['strong-mode'];
-      if (strongMode is bool) {
-        _useStrongMode = strongMode;
+      if (analyzerSection['strong-mode'] is bool) _useStrongMode = analyzerSection['strong-mode'];
+
+      var languageOpts = analyzerSection['language'];
+      if (languageOpts is Map) {
+        if (languageOpts['enableSuperMixins'] is bool) {
+          _enableSuperMixins = languageOpts['enableSuperMixins'];
+        }
+
+        if (languageOpts['enableConditionalDirectives'] is bool) {
+          _enableConditionalDirectives = languageOpts['enableConditionalDirectives'];
+        }
       }
     }
   }

@@ -105,14 +105,17 @@ class Project {
 
   void print(o) => logger.stdout('${o}');
 
-  void _getFiles(List<File> files, Directory dir,
-      {bool recursive: false, List<String> extensions}) {
+  void _getFiles(List<File> files, Directory dir, {
+    bool recursive: false, List<String> extensions
+  }) {
+    if (p.basename(dir.path).startsWith('.')) return;
+
     String projectPath = this.dir.path;
     if (!projectPath.endsWith(Platform.pathSeparator)) {
       projectPath += Platform.pathSeparator;
     }
 
-    dir.listSync(recursive: recursive, followLinks: false).forEach((entity) {
+    dir.listSync(followLinks: false).forEach((entity) {
       if (entity is File) {
         String shortPath = entity.path;
         if (shortPath.startsWith(projectPath)) {
@@ -125,6 +128,8 @@ class Project {
 
         String ext = getFileExtension(entity.path).toLowerCase();
         if (extensions.contains(ext)) files.add(entity);
+      } else if (entity is Directory && recursive) {
+        _getFiles(files, entity, recursive: recursive, extensions: extensions);
       }
     });
   }
