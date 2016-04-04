@@ -17,7 +17,7 @@ Run `tuneup --help` (or `pub global run tuneup --help`) to see a list of availab
 
 - *init*: create a new project
 - *check*: analyze all the source code in the project - fail if there are any
-   errors (This is the default action)
+   errors (this is the default action)
 - *stats*: display metadata and statistics about the project
 - *trim*: trim unwanted whitespace from your source
 - *clean*: clean the project (remove the build/ directory)
