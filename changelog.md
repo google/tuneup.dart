@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+- rev to the latest version of the analysis engine to capture some fixes to
+  strong mode warnings
+
 ## 0.2.1
 - rev to the latest version of the analysis engine
 - support conditional directives and super mixins
