@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.3
+- rev to the latest version of the analysis engine (`0.27.4-alpha.13`)
+
 ## 0.2.2
 - rev to the latest version of the analysis engine to capture some fixes to
   strong mode warnings

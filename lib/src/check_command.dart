@@ -73,6 +73,7 @@ class CheckCommand extends Command {
 
     if (_useStrongMode) options.strongMode = _useStrongMode;
     if (_enableSuperMixins) options.enableSuperMixins = _enableSuperMixins;
+    // ignore: deprecated_member_use
     if (_enableConditionalDirectives) options.enableConditionalDirectives = _enableConditionalDirectives;
 
     context.analysisOptions = options;
@@ -110,13 +111,12 @@ class CheckCommand extends Command {
 
     stopwatch.stop();
 
-    List<_Error> errors = errorInfos
+    List<_Error> errors = new List.from(errorInfos
         .expand((AnalysisErrorInfo info) {
           return info.errors.map((error)
               => new _Error(error, info.lineInfo, project.dir.path));
         })
-        .where((_Error error) => error.errorType != ErrorType.TODO)
-        .toList();
+        .where((_Error error) => error.errorType != ErrorType.TODO));
 
     int ignoredCount = 0;
 
