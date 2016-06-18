@@ -61,7 +61,7 @@ class Project {
       if (excludes is List) {
         _excludes.addAll(excludes
           .where((ex) => ex is String)
-          .map((st) => new Glob(st))
+          .map((String st) => new Glob(st))
         );
       }
     }
