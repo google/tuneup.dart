@@ -23,7 +23,7 @@ import 'src/trim_command.dart';
 export 'src/common.dart' show CliLogger;
 
 // This version must be updated in tandem with the pubspec version.
-const String appVersion = '0.2.3';
+const String appVersion = '0.2.4';
 const String appName = 'tuneup';
 
 class Tuneup {

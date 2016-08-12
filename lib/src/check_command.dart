@@ -56,15 +56,13 @@ class CheckCommand extends Command {
 
     if (project.packagesFile.existsSync()) {
       packages = _discoverPackagespec(project.dir);
-      resolvers.add(
-        new SdkExtUriResolver(_createPackageFilePackageMap(packages)));
+      resolvers.add(new SdkExtUriResolver(_createPackageFilePackageMap(packages)));
     } else if (project.packageDir.existsSync()) {
       new PackageUriResolver([new JavaFile(project.packagePath)]);
-      resolvers.add(
-        new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
+      resolvers.add(new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
     }
 
-    resolvers.add(new FileUriResolver());
+    resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
 
     context.sourceFactory = new SourceFactory(resolvers, packages);
     AnalysisEngine.instance.logger = new _Logger();
@@ -73,8 +71,9 @@ class CheckCommand extends Command {
 
     if (_useStrongMode) options.strongMode = _useStrongMode;
     if (_enableSuperMixins) options.enableSuperMixins = _enableSuperMixins;
-    // ignore: deprecated_member_use
-    if (_enableConditionalDirectives) options.enableConditionalDirectives = _enableConditionalDirectives;
+    if (_enableConditionalDirectives) {
+      options.enableConditionalDirectives = _enableConditionalDirectives; // ignore: deprecated_member_use
+    }
 
     context.analysisOptions = options;
 
