@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.5
+- rev to `0.28.1` of the analyzer
+
 ## 0.2.4
 - rev to the latest version of the analysis engine (`0.27.4`)
 

@@ -13,11 +13,11 @@ import 'package:analyzer/file_system/file_system.dart' as analysisFile show File
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -28,9 +28,8 @@ import 'package:path/path.dart' as p;
 import 'common.dart';
 
 class CheckCommand extends Command {
-  bool _useStrongMode = false;
-  bool _enableSuperMixins = false;
-  bool _enableConditionalDirectives = false;
+  bool _useStrongMode;
+  bool _enableSuperMixins;
 
   CheckCommand() : super('check',
       'analyze all the source code in the project - fail if there are any errors');
@@ -42,7 +41,10 @@ class CheckCommand extends Command {
 
     AnalysisEngine.instance.taskManager;
 
-    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(project.sdkPath));
+    DartSdk sdk = new FolderBasedDartSdk(
+      PhysicalResourceProvider.INSTANCE,
+      PhysicalResourceProvider.INSTANCE.getFolder(project.sdkPath)
+    );
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.cacheSize = 512;
@@ -69,11 +71,8 @@ class CheckCommand extends Command {
 
     _processAnalysisOptions(context);
 
-    if (_useStrongMode) options.strongMode = _useStrongMode;
-    if (_enableSuperMixins) options.enableSuperMixins = _enableSuperMixins;
-    if (_enableConditionalDirectives) {
-      options.enableConditionalDirectives = _enableConditionalDirectives; // ignore: deprecated_member_use
-    }
+    if (_useStrongMode != null) options.strongMode = _useStrongMode;
+    if (_enableSuperMixins != null) options.enableSuperMixins = _enableSuperMixins;
 
     context.analysisOptions = options;
 
@@ -215,10 +214,6 @@ class CheckCommand extends Command {
       if (languageOpts is Map) {
         if (languageOpts['enableSuperMixins'] is bool) {
           _enableSuperMixins = languageOpts['enableSuperMixins'];
-        }
-
-        if (languageOpts['enableConditionalDirectives'] is bool) {
-          _enableConditionalDirectives = languageOpts['enableConditionalDirectives'];
         }
       }
     }
