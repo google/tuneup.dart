@@ -4,7 +4,7 @@
 
 library tuneup.common_test;
 
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 import 'package:tuneup/src/common.dart';
 
 void main() => defineTests();

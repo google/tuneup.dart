@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/discovery.dart' as pkgDiscovery;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:path/path.dart' as p;
@@ -47,7 +46,6 @@ class CheckCommand extends Command {
     );
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.cacheSize = 512;
     AnalysisEngine.instance.processRequiredPlugins();
 
     List<UriResolver> resolvers = [
@@ -199,9 +197,10 @@ class CheckCommand extends Command {
     if (options == null || options.isEmpty) return;
 
     // Handle options processors.
-    List processors = AnalysisEngine.instance.optionsPlugin.optionsProcessors;
-    processors.forEach((processor) => processor.optionsProcessed(context, options));
-    configureContextOptions(context, options);
+    // TODO(devoncarew): Cleanup as part of move to analyzer 0.30.0-alpha.1.
+    // List processors = AnalysisEngine.instance.optionsPlugin.optionsProcessors;
+    // processors.forEach((processor) => processor.optionsProcessed(context, options));
+    // configureContextOptions(context, options);
 
     // Handle strong mode.
     // analyzer:
