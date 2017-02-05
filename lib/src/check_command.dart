@@ -15,7 +15,7 @@ import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/error.dart'; // ignore: deprecated_member_use
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -58,6 +58,7 @@ class CheckCommand extends Command {
       packages = _discoverPackagespec(project.dir);
       resolvers.add(new SdkExtUriResolver(_createPackageFilePackageMap(packages)));
     } else if (project.packageDir.existsSync()) {
+      // ignore: deprecated_member_use
       new PackageUriResolver([new JavaFile(project.packagePath)]);
       resolvers.add(new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
     }
@@ -142,7 +143,6 @@ class CheckCommand extends Command {
 
     return errors.isEmpty ? new Future.value() : new Future.error(new ExitCode(1));
   }
-
 
   Map<String, List<Folder>> _createPackageFilePackageMap(Packages packages) {
     Map<String, List<Folder>> m = {};
@@ -230,7 +230,14 @@ class _Error implements Comparable {
   int get severity => error.errorCode.errorSeverity.ordinal;
   String get severityName => error.errorCode.errorSeverity.displayName;
   String get message => error.message;
-  String get description => '${message} at ${location}, line ${line}.';
+  String get messageSentenceFragment {
+    String m = message;
+    return m.endsWith('.') ? m.substring(0, m.length - 1) : m;
+  }
+  String get code => error.errorCode.name.toLowerCase();
+
+  String get description => '${messageSentenceFragment} at ${location}, line ${line} ($code).';
+
   int get line => lineInfo.getLocation(error.offset).lineNumber;
 
   String get location {
