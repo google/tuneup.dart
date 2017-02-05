@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6
+- rev to `0.30.0-alpha.1` of the analyzer
+- print error codes in the output (useful for `// ignore: foo_bar` comments)
+
 ## 0.2.5
 - rev to `0.28.1` of the analyzer
 
