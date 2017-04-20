@@ -12,8 +12,8 @@ import 'package:path/path.dart' as path;
 import 'common.dart';
 
 class StatsCommand extends Command {
-  StatsCommand() : super('stats',
-      'display metadata and statistics about the project');
+  StatsCommand()
+      : super('stats', 'display metadata and statistics about the project');
 
   Future execute(Project project, [args]) {
     Map pubspec = project.pubspec;
@@ -22,7 +22,8 @@ class StatsCommand extends Command {
 
     project.print("Package '${project.name}', version ${version}.");
 
-    List<File> files = project.getSourceFiles(extensions: ['dart', 'html', 'css']);
+    List<File> files =
+        project.getSourceFiles(extensions: ['dart', 'html', 'css']);
 
     Map _stats = {};
 
@@ -36,9 +37,8 @@ class StatsCommand extends Command {
       _stats[ext].lines += _lineCount(file);
     });
 
-    _Stats all = _stats.values.reduce(
-      (a, b) => new _Stats(a.files + b.files, a.lines + b.lines)
-    );
+    _Stats all = _stats.values
+        .reduce((a, b) => new _Stats(a.files + b.files, a.lines + b.lines));
 
     // "Found 288 Dart files and 44,863 lines of code."
     // TODO: print a breakdown by type
@@ -61,7 +61,10 @@ int _lineCount(File file) {
   return str.split('\n').where((String line) {
     line = line.trim();
     if (line.isEmpty) return false;
-    if (line.startsWith('//') || line.startsWith('* ') || line.startsWith('*/') || line.startsWith('/*')) {
+    if (line.startsWith('//') ||
+        line.startsWith('* ') ||
+        line.startsWith('*/') ||
+        line.startsWith('/*')) {
       return false;
     }
     return true;

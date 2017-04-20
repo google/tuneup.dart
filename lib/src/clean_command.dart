@@ -12,8 +12,8 @@ import 'package:path/path.dart' as path;
 import 'common.dart';
 
 class CleanCommand extends Command {
-  CleanCommand() : super('clean',
-      'clean the project - remove the build/ directory');
+  CleanCommand()
+      : super('clean', 'clean the project - remove the build/ directory');
 
   Future execute(Project project, [args]) {
     Directory buildDir = new Directory(path.join(project.dir.path, 'build'));

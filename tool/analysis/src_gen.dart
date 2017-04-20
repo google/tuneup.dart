@@ -1,4 +1,3 @@
-
 /// A library to generate Dart source code.
 library src_gen;
 

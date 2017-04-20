@@ -15,7 +15,7 @@ class InitCommand extends Command {
   InitCommand() : super('init', 'create a new project');
 
   Future execute(Project project, [args]) {
-    if (args== null) args = {};
+    if (args == null) args = {};
 
     if (!args['override'] && !_isDirEmpty(project.dir)) {
       return new Future.error('The current directory is not empty. Please '
@@ -70,8 +70,8 @@ environment:
 #  unittest: any
 """;
 
-void _writeFile(Project project, String filename, String contents,
-    String projectName) {
+void _writeFile(
+    Project project, String filename, String contents, String projectName) {
   contents = contents.replaceAll('{{projectName}}', projectName);
   File file = new File(path.join(project.dir.path, filename));
   if (!file.parent.existsSync()) file.parent.createSync();
@@ -86,7 +86,8 @@ void _writeFile(Project project, String filename, String contents,
 bool _isDirEmpty(Directory dir) {
   var isHiddenDir = (dir) => path.basename(dir.path).startsWith('.');
 
-  return dir.listSync(followLinks: false)
+  return dir
+      .listSync(followLinks: false)
       .where((entity) => entity is Directory)
       .where((entity) => !isHiddenDir(entity))
       .isEmpty;

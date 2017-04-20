@@ -44,7 +44,8 @@ class TrimCommand extends Command {
     }
 
     if (modifiedCount > 0) {
-      project.print('${modifiedCount} ${pluralize("file", modifiedCount)} changed.');
+      project.print(
+          '${modifiedCount} ${pluralize("file", modifiedCount)} changed.');
     } else {
       project.print('No files changed.');
     }
@@ -88,40 +89,40 @@ abstract class FileHandler {
   FileHandler(this.types);
 
   String trim(String contents) {
-   String eol = discoverEol(contents);
+    String eol = discoverEol(contents);
 
-   for (Converter converter in preConverters) {
-     contents = converter.convert(contents);
-   }
+    for (Converter converter in preConverters) {
+      contents = converter.convert(contents);
+    }
 
-   if (!lineConverters.isEmpty) {
-     // TODO: remove this once converters are cloned
-     for (Converter converter in lineConverters) {
-       converter.convert(null);
-     }
+    if (!lineConverters.isEmpty) {
+      // TODO: remove this once converters are cloned
+      for (Converter converter in lineConverters) {
+        converter.convert(null);
+      }
 
-     List<String> lines = contents.split(eol);
-     List<String> results = [];
+      List<String> lines = contents.split(eol);
+      List<String> results = [];
 
-     for (String line in lines) {
-       for (Converter converter in lineConverters) {
-         line = converter.convert(line);
-         if (line == null) break;
-       }
+      for (String line in lines) {
+        for (Converter converter in lineConverters) {
+          line = converter.convert(line);
+          if (line == null) break;
+        }
 
-       if (line != null) {
-         results.add(line);
-       }
-     }
+        if (line != null) {
+          results.add(line);
+        }
+      }
 
-     contents = results.join(eol);
-   }
+      contents = results.join(eol);
+    }
 
-   for (Converter converter in postConverters) {
-     contents = converter.convert(contents);
-   }
+    for (Converter converter in postConverters) {
+      contents = converter.convert(contents);
+    }
 
-   return contents;
+    return contents;
   }
 }
 
