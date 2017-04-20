@@ -128,7 +128,7 @@ abstract class FileHandler {
 /**
  * Make sure we end with one eol at eof.
  */
-class EndsWithEOLConverter extends Converter {
+class EndsWithEOLConverter extends Converter<String, String> {
   String convert(String input) {
     String eol = discoverEol(input);
     input = input.trimRight() + eol;
@@ -139,14 +139,14 @@ class EndsWithEOLConverter extends Converter {
 /**
  * Remove any whitespace at the end of the line.
  */
-class RightTrimLine extends Converter {
+class RightTrimLine extends Converter<String, String> {
   String convert(String input) => input == null ? null : input.trimRight();
 }
 
 /**
  * Remove double blank lines.
  */
-class RemoveDoubleBlankConverter extends Converter {
+class RemoveDoubleBlankConverter extends Converter<String, String> {
   bool _lastWasBlank = false;
 
   String convert(String input) {

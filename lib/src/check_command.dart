@@ -219,7 +219,7 @@ class CheckCommand extends Command {
   }
 }
 
-class _Error implements Comparable {
+class _Error implements Comparable<_Error> {
   final AnalysisError error;
   final LineInfo lineInfo;
   final String projectPath;

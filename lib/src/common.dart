@@ -11,12 +11,9 @@ import 'package:analyzer/file_system/file_system.dart' as analysisFile show File
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:path/path.dart' as p;
 import 'package:quiver/pattern.dart' show Glob;
 import 'package:yaml/yaml.dart' as yaml;
-
-List<String> cliArgs = [];
 
 final bool isWindows = Platform.isWindows;
 
@@ -55,9 +52,9 @@ class Project {
     // analyzer:
     //   exclude:
     //     - test/data/*
-    var analyzerSection = options['analyzer'];
+    dynamic analyzerSection = options['analyzer'];
     if (analyzerSection is Map) {
-      var excludes = analyzerSection['exclude'];
+      dynamic excludes = analyzerSection['exclude'];
       if (excludes is List) {
         _excludes.addAll(excludes
           .where((ex) => ex is String)
@@ -75,7 +72,7 @@ class Project {
     }
   }
 
-  String get sdkPath => cli_util.getSdkDir(cliArgs).path;
+  String get sdkPath => p.dirname(p.dirname(Platform.resolvedExecutable));
 
   String get packagePath => p.join(dir.path, 'packages');
 

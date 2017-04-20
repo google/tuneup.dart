@@ -45,11 +45,7 @@ class Tuneup {
   Future processArgs(List<String> args, {Directory directory}) {
     if (directory == null) directory = Directory.current;
 
-    // TODO: clean up this global state.
-    cliArgs = args;
-
     ArgParser argParser = _createArgParser();
-
     ArgResults options;
 
     try {
