@@ -126,20 +126,20 @@ class Tuneup {
     ArgParser parser = new ArgParser();
 
     parser.addFlag('help', abbr: 'h', negatable: false, help: 'Help!');
-    parser.addFlag('version', negatable: false,
-        help: 'Display the application version.');
+    parser.addFlag('version',
+        negatable: false, help: 'Display the application version.');
     parser.addOption('dart-sdk', hide: true, help: 'the path to the sdk');
     parser.addOption('directory', help: 'The project directory to analyze.');
 
     // init
     ArgParser commandParser = parser.addCommand('init');
-    commandParser.addFlag('override', negatable: false,
-        help: 'Force generation of the sample project.');
+    commandParser.addFlag('override',
+        negatable: false, help: 'Force generation of the sample project.');
 
     // check
     commandParser = parser.addCommand('check');
-    commandParser.addFlag('ignore-infos', negatable: false,
-        help: 'Ignore any info level issues.');
+    commandParser.addFlag('ignore-infos',
+        negatable: false, help: 'Ignore any info level issues.');
 
     // stats
     parser.addCommand('stats');

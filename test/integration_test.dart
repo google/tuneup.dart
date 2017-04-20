@@ -22,8 +22,9 @@ void defineTests() {
     });
 
     tearDown(() {
-      try { foo.deleteSync(recursive: true); }
-      catch (e) { }
+      try {
+        foo.deleteSync(recursive: true);
+      } catch (e) {}
     });
 
     test('no args', () {
@@ -34,7 +35,8 @@ void defineTests() {
         _setupPub();
         return tuneup.processArgs(['check'], directory: foo);
       }).then((_) {
-        expect(logger.out, contains('No issues found; analyzed 1 source file in'));
+        expect(
+            logger.out, contains('No issues found; analyzed 1 source file in'));
         expect(logger.err, isEmpty);
       });
     });
@@ -61,7 +63,8 @@ void defineTests() {
     test('--help', () {
       Tuneup tuneup = new Tuneup(logger);
       return tuneup.processArgs(['--help'], directory: foo).then((_) {
-        expect(logger.out, contains('A tool to improve visibility into your Dart projects.'));
+        expect(logger.out,
+            contains('A tool to improve visibility into your Dart projects.'));
         expect(logger.out, contains('commands:'));
         expect(logger.err, isEmpty);
       });
@@ -107,7 +110,8 @@ void defineTests() {
         other.writeAsStringSync('<body>\n  hey!\n\n\nfoo \n</body>\n\n\n');
       }).then((_) {
         return tuneup.processArgs(['trim'], directory: foo).then((_) {
-          expect(hello.readAsStringSync(), "void main() {\n  print('hello world!');\n}\n");
+          expect(hello.readAsStringSync(),
+              "void main() {\n  print('hello world!');\n}\n");
           expect(other.readAsStringSync(), '<body>\n  hey!\n\nfoo\n</body>\n');
         });
       });
@@ -121,7 +125,8 @@ void defineTests() {
         _setupPub();
         return tuneup.processArgs(['check'], directory: foo);
       }).then((_) {
-        expect(logger.out, contains('No issues found; analyzed 1 source file in'));
+        expect(
+            logger.out, contains('No issues found; analyzed 1 source file in'));
         expect(logger.err, isEmpty);
       });
     });
@@ -139,7 +144,8 @@ void defineTests() {
         fail('expected analysis errors');
       }).catchError((e) {
         expect(e is ExitCode, true);
-        expect(logger.out, contains('2 issues found; analyzed 1 source file in'));
+        expect(
+            logger.out, contains('2 issues found; analyzed 1 source file in'));
         expect(logger.err, isEmpty);
       });
     });

@@ -1,4 +1,3 @@
-
 library generate_analysis_lib;
 
 import 'dart:collection' show LinkedHashMap;
@@ -18,10 +17,14 @@ main(List<String> args) {
   print('Parsed ${file.path}.');
   Element ver = document.body.querySelector('version');
   List<Element> domains = document.body.getElementsByTagName('domain');
-  List<Element> typedefs = document.body.getElementsByTagName('types')
-      .first.getElementsByTagName('type');
-  List<Element> refactorings = document.body.getElementsByTagName('refactorings')
-      .first.getElementsByTagName('refactoring');
+  List<Element> typedefs = document.body
+      .getElementsByTagName('types')
+      .first
+      .getElementsByTagName('type');
+  List<Element> refactorings = document.body
+      .getElementsByTagName('refactorings')
+      .first
+      .getElementsByTagName('refactoring');
   api = new Api(ver.text);
   api.parse(domains, typedefs, refactorings);
 
@@ -30,6 +33,7 @@ main(List<String> args) {
   DartGenerator generator = new DartGenerator();
   api.generate(generator);
   outputFile.writeAsStringSync(generator.toString());
+  Process.runSync('dartfmt', ['-w', outputFile.path]);
   print('Wrote ${outputFile.path}.');
 }
 
@@ -44,9 +48,12 @@ class Api {
 
   void parse(List<Element> domainElements, List<Element> typeElements,
       List<Element> refactoringElements) {
-    typedefs = new List.from(typeElements.map((element) => new TypeDef(element)));
-    domains = new List.from(domainElements.map((element) => new Domain(element)));
-    refactorings = new List.from(refactoringElements.map((e) => new Refactoring(e)));
+    typedefs =
+        new List.from(typeElements.map((element) => new TypeDef(element)));
+    domains =
+        new List.from(domainElements.map((element) => new Domain(element)));
+    refactorings =
+        new List.from(refactoringElements.map((e) => new Refactoring(e)));
 
     // Mark some types as jsonable - we can send them back over the wire.
     findRef('SourceEdit').setCallParam();
@@ -73,8 +80,10 @@ class Api {
     gen.writeln(
         'JsonCodec _jsonEncoder = new JsonCodec(toEncodable: _toEncodable);');
     gen.writeStatement('Map<String, Domain> _domains = {};');
-    gen.writeln("StreamController<String> _onSend = new StreamController.broadcast();");
-    gen.writeln("StreamController<String> _onReceive = new StreamController.broadcast();");
+    gen.writeln(
+        "StreamController<String> _onSend = new StreamController.broadcast();");
+    gen.writeln(
+        "StreamController<String> _onReceive = new StreamController.broadcast();");
     gen.writeln("MethodSend _willSend;");
     gen.writeln();
     domains.forEach(
@@ -115,7 +124,8 @@ class Api {
     gen.writeln();
     gen.writeStatement('class Refactorings {');
     refactorings.forEach((Refactoring refactor) {
-      gen.writeStatement("static const String ${refactor.kind} = '${refactor.kind}';");
+      gen.writeStatement(
+          "static const String ${refactor.kind} = '${refactor.kind}';");
     });
     gen.writeStatement('}');
 
@@ -129,7 +139,7 @@ class Api {
       gen.writeln("// ${refactor.kind}:");
       for (Field field in refactor.feedbackFields) {
         gen.writeln(
-          "//   ${field.optional ? '@optional ' : ''}${field.name} → ${field.type}");
+            "//   ${field.optional ? '@optional ' : ''}${field.name} → ${field.type}");
       }
       gen.writeln();
     });
@@ -161,13 +171,11 @@ class Domain {
     name = element.attributes['name'];
     experimental = element.attributes.containsKey('experimental');
     requests = new List.from(element
-      .getElementsByTagName('request')
-      .map((element) => new Request(this, element))
-    );
+        .getElementsByTagName('request')
+        .map((element) => new Request(this, element)));
     notifications = new List.from(element
-      .getElementsByTagName('notification')
-      .map((element) => new Notification(this, element))
-    );
+        .getElementsByTagName('notification')
+        .map((element) => new Notification(this, element)));
   }
 
   String get className => '${titleCase(name)}Domain';
@@ -179,7 +187,8 @@ class Domain {
     gen.writeln();
     if (experimental) gen.writeln('@experimental');
     gen.writeStatement('class ${className} extends Domain {');
-    gen.writeStatement("${className}(Server server) : super(server, '${name}');");
+    gen.writeStatement(
+        "${className}(Server server) : super(server, '${name}');");
     if (notifications.isNotEmpty) {
       gen.writeln();
       notifications
@@ -220,11 +229,11 @@ class Domain {
       gen.write('${name}(');
       gen.write(fields.map((field) {
         StringBuffer buf = new StringBuffer();
-        if (field.optional && fields.firstWhere((a) => a.optional) == field) buf
-            .write('{');
+        if (field.optional && fields.firstWhere((a) => a.optional) == field)
+          buf.write('{');
         buf.write('this.${field.name}');
-        if (field.optional && fields.lastWhere((a) => a.optional) == field) buf
-            .write('}');
+        if (field.optional && fields.lastWhere((a) => a.optional) == field)
+          buf.write('}');
         return buf.toString();
       }).join(', '));
       gen.writeln(');');
@@ -301,11 +310,11 @@ class Request {
     }
     gen.write(args.map((arg) {
       StringBuffer buf = new StringBuffer();
-      if (arg.optional && args.firstWhere((a) => a.optional) == arg) buf
-          .write('{');
+      if (arg.optional && args.firstWhere((a) => a.optional) == arg)
+        buf.write('{');
       buf.write('${arg.type} ${arg.name}');
-      if (arg.optional && args.lastWhere((a) => a.optional) == arg) buf
-          .write('}');
+      if (arg.optional && args.lastWhere((a) => a.optional) == arg)
+        buf.write('}');
       return buf.toString();
     }).join(', '));
     gen.writeStatement(') {');
@@ -350,10 +359,8 @@ class Notification {
 
   Notification(this.domain, Element element) {
     event = element.attributes['event'];
-    fields = new List.from(element
-      .getElementsByTagName('field')
-      .map((field) => new Field(field))
-    );
+    fields = new List.from(
+        element.getElementsByTagName('field').map((field) => new Field(field)));
     fields.sort();
   }
 
@@ -366,7 +373,8 @@ class Notification {
   void generate(DartGenerator gen) {
     gen.writeln("Stream<${className}> get ${onName} {");
     // TODO: I don't really like having to do this cast.
-    gen.writeln("return _listen('${title}', ${className}.parse) as Stream<${className}>;");
+    gen.writeln(
+        "return _listen('${title}', ${className}.parse) as Stream<${className}>;");
     gen.writeln("}");
   }
 
@@ -395,11 +403,11 @@ class Notification {
     gen.write('${className}(');
     gen.write(fields.map((field) {
       StringBuffer buf = new StringBuffer();
-      if (field.optional && fields.firstWhere((a) => a.optional) == field) buf
-          .write('{');
+      if (field.optional && fields.firstWhere((a) => a.optional) == field)
+        buf.write('{');
       buf.write('this.${field.name}');
-      if (field.optional && fields.lastWhere((a) => a.optional) == field) buf
-          .write('}');
+      if (field.optional && fields.lastWhere((a) => a.optional) == field)
+        buf.write('}');
       return buf.toString();
     }).join(', '));
     gen.writeln(');');
@@ -448,9 +456,8 @@ class Refactoring {
     Element options = element.querySelector('options');
     if (options != null) {
       optionsFields = new List.from(options
-        .getElementsByTagName('field')
-        .map((field) => new Field(field))
-      );
+          .getElementsByTagName('field')
+          .map((field) => new Field(field)));
     }
 
     // Parse <feedback>
@@ -458,9 +465,8 @@ class Refactoring {
     Element feedback = element.querySelector('feedback');
     if (feedback != null) {
       feedbackFields = new List.from(feedback
-        .getElementsByTagName('field')
-        .map((field) => new Field(field))
-      );
+          .getElementsByTagName('field')
+          .map((field) => new Field(field)));
     }
   }
 
@@ -473,7 +479,8 @@ class Refactoring {
     // Generate the refactoring options.
     if (optionsFields.isNotEmpty) {
       gen.writeln();
-      gen.writeStatement('class ${className}RefactoringOptions extends RefactoringOptions {');
+      gen.writeStatement(
+          'class ${className}RefactoringOptions extends RefactoringOptions {');
       // fields
       for (Field field in optionsFields) {
         field.generate(gen);
@@ -481,8 +488,8 @@ class Refactoring {
 
       gen.writeln();
       gen.writeStatement('${className}RefactoringOptions({'
-        '${optionsFields.map((f) => 'this.${f.name}').join(', ')}'
-        '});');
+          '${optionsFields.map((f) => 'this.${f.name}').join(', ')}'
+          '});');
       gen.writeln();
 
       // toMap
@@ -512,10 +519,8 @@ class TypeDef {
     'SearchResult'
   ]);
 
-  static final Set<String> _shouldHaveEquals = new Set.from([
-    'Location',
-    'AnalysisError'
-  ]);
+  static final Set<String> _shouldHaveEquals =
+      new Set.from(['Location', 'AnalysisError']);
 
   String name;
   bool experimental = false;
@@ -532,10 +537,8 @@ class TypeDef {
 
     if (tags.contains('object')) {
       Element object = element.getElementsByTagName('object').first;
-      fields = new List.from(object
-        .getElementsByTagName('field')
-        .map((f) => new Field(f))
-      );
+      fields = new List.from(
+          object.getElementsByTagName('field').map((f) => new Field(f)));
       fields.sort((a, b) {
         if (a.optional && !b.optional) return 1;
         if (!a.optional && b.optional) return -1;
@@ -565,7 +568,9 @@ class TypeDef {
   }
 
   void generate(DartGenerator gen) {
-    if (name == 'RefactoringOptions' || name == 'RefactoringFeedback' || name == 'RequestError') {
+    if (name == 'RefactoringOptions' ||
+        name == 'RefactoringFeedback' ||
+        name == 'RequestError') {
       return;
     }
 
@@ -601,11 +606,11 @@ class TypeDef {
     gen.write('${name}(');
     gen.write(fields.map((field) {
       StringBuffer buf = new StringBuffer();
-      if (field.optional && fields.firstWhere((a) => a.optional) == field) buf
-          .write('{');
+      if (field.optional && fields.firstWhere((a) => a.optional) == field)
+        buf.write('{');
       buf.write('this.${field.name}');
-      if (field.optional && fields.lastWhere((a) => a.optional) == field) buf
-          .write('}');
+      if (field.optional && fields.lastWhere((a) => a.optional) == field)
+        buf.write('}');
       return buf.toString();
     }).join(', '));
     gen.writeln(');');
@@ -615,15 +620,19 @@ class TypeDef {
       String str = fields.map((f) => "${f.name} == o.${f.name}").join(' && ');
       gen.writeln("operator==(o) => o is ${name} && ${str};");
       gen.writeln();
-      String str2 = fields.where((f) => !f.optional).map(
-          (f) => "${f.name}.hashCode").join(' ^ ');
+      String str2 = fields
+          .where((f) => !f.optional)
+          .map((f) => "${f.name}.hashCode")
+          .join(' ^ ');
       gen.writeln("get hashCode => ${str2};");
     }
 
     if (hasToString) {
       gen.writeln();
-      String str = fields.where((f) => !f.optional).map(
-          (f) => "${f.name}: \${${f.name}}").join(', ');
+      String str = fields
+          .where((f) => !f.optional)
+          .map((f) => "${f.name}: \${${f.name}}")
+          .join(', ');
       gen.writeln("String toString() => '[${name} ${str}]';");
     }
 

@@ -9,7 +9,8 @@ import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/file_system/file_system.dart' hide File;
-import 'package:analyzer/file_system/file_system.dart' as analysisFile show File;
+import 'package:analyzer/file_system/file_system.dart' as analysisFile
+    show File;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
@@ -30,8 +31,9 @@ class CheckCommand extends Command {
   bool _useStrongMode;
   bool _enableSuperMixins;
 
-  CheckCommand() : super('check',
-      'analyze all the source code in the project - fail if there are any errors');
+  CheckCommand()
+      : super('check',
+            'analyze all the source code in the project - fail if there are any errors');
 
   Future execute(Project project, [args]) {
     bool ignoreInfos = args == null ? false : args['ignore-infos'];
@@ -40,27 +42,25 @@ class CheckCommand extends Command {
 
     AnalysisEngine.instance.taskManager;
 
-    DartSdk sdk = new FolderBasedDartSdk(
-      PhysicalResourceProvider.INSTANCE,
-      PhysicalResourceProvider.INSTANCE.getFolder(project.sdkPath)
-    );
+    DartSdk sdk = new FolderBasedDartSdk(PhysicalResourceProvider.INSTANCE,
+        PhysicalResourceProvider.INSTANCE.getFolder(project.sdkPath));
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     AnalysisEngine.instance.processRequiredPlugins();
 
-    List<UriResolver> resolvers = [
-      new DartUriResolver(sdk)
-    ];
+    List<UriResolver> resolvers = [new DartUriResolver(sdk)];
 
     Packages packages;
 
     if (project.packagesFile.existsSync()) {
       packages = _discoverPackagespec(project.dir);
-      resolvers.add(new SdkExtUriResolver(_createPackageFilePackageMap(packages)));
+      resolvers
+          .add(new SdkExtUriResolver(_createPackageFilePackageMap(packages)));
     } else if (project.packageDir.existsSync()) {
       // ignore: deprecated_member_use
       new PackageUriResolver([new JavaFile(project.packagePath)]);
-      resolvers.add(new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
+      resolvers
+          .add(new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
     }
 
     resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
@@ -71,7 +71,8 @@ class CheckCommand extends Command {
     _processAnalysisOptions(context);
 
     if (_useStrongMode != null) options.strongMode = _useStrongMode;
-    if (_enableSuperMixins != null) options.enableSuperMixins = _enableSuperMixins;
+    if (_enableSuperMixins != null)
+      options.enableSuperMixins = _enableSuperMixins;
 
     context.analysisOptions = options;
 
@@ -108,18 +109,18 @@ class CheckCommand extends Command {
 
     stopwatch.stop();
 
-    List<_Error> errors = new List.from(errorInfos
-        .expand((AnalysisErrorInfo info) {
-          return info.errors.map((error)
-              => new _Error(error, info.lineInfo, project.dir.path));
-        })
-        .where((_Error error) => error.errorType != ErrorType.TODO));
+    List<_Error> errors =
+        new List.from(errorInfos.expand((AnalysisErrorInfo info) {
+      return info.errors
+          .map((error) => new _Error(error, info.lineInfo, project.dir.path));
+    }).where((_Error error) => error.errorType != ErrorType.TODO));
 
     int ignoredCount = 0;
 
     if (ignoreInfos) {
-      List<_Error> newErrors = errors.where(
-          (e) => e.severity != ErrorSeverity.INFO.ordinal).toList();
+      List<_Error> newErrors = errors
+          .where((e) => e.severity != ErrorSeverity.INFO.ordinal)
+          .toList();
       ignoredCount = errors.length - newErrors.length;
       errors = newErrors;
     }
@@ -133,15 +134,19 @@ class CheckCommand extends Command {
         'in ${seconds}s.');
 
     if (ignoredCount > 0) {
-      project.print('(${ignoredCount} ${pluralize("issue", ignoredCount)} ignored)');
+      project.print(
+          '(${ignoredCount} ${pluralize("issue", ignoredCount)} ignored)');
     }
 
     if (errors.isNotEmpty) {
       project.print('');
-      errors.forEach((e) => project.print('[${e.severityName}] ${e.description}'));
+      errors.forEach(
+          (e) => project.print('[${e.severityName}] ${e.description}'));
     }
 
-    return errors.isEmpty ? new Future.value() : new Future.error(new ExitCode(1));
+    return errors.isEmpty
+        ? new Future.value()
+        : new Future.error(new ExitCode(1));
   }
 
   Map<String, List<Folder>> _createPackageFilePackageMap(Packages packages) {
@@ -162,7 +167,8 @@ class CheckCommand extends Command {
   Map<String, List<Folder>> _createPackagesFolderPackageMap(Project project) {
     Map<String, List<Folder>> m = {};
 
-    for (FileSystemEntity entity in project.packageDir.listSync(followLinks: false)) {
+    for (FileSystemEntity entity
+        in project.packageDir.listSync(followLinks: false)) {
       if (entity is Link) {
         String name = p.basename(entity.path);
         String target = entity.targetSync();
@@ -207,7 +213,8 @@ class CheckCommand extends Command {
     //   strong-mode: true
     var analyzerSection = options['analyzer'];
     if (analyzerSection is Map) {
-      if (analyzerSection['strong-mode'] is bool) _useStrongMode = analyzerSection['strong-mode'];
+      if (analyzerSection['strong-mode'] is bool)
+        _useStrongMode = analyzerSection['strong-mode'];
 
       var languageOpts = analyzerSection['language'];
       if (languageOpts is Map) {
@@ -234,9 +241,11 @@ class _Error implements Comparable<_Error> {
     String m = message;
     return m.endsWith('.') ? m.substring(0, m.length - 1) : m;
   }
+
   String get code => error.errorCode.name.toLowerCase();
 
-  String get description => '${messageSentenceFragment} at ${location}, line ${line} ($code).';
+  String get description =>
+      '${messageSentenceFragment} at ${location}, line ${line} ($code).';
 
   int get line => lineInfo.getLocation(error.offset).lineNumber;
 
@@ -263,6 +272,6 @@ class _Error implements Comparable<_Error> {
 class _Logger extends Logger {
   void logError(String message, [exception]) => stderr.writeln(message);
   void logError2(String message, dynamic exception) => stderr.writeln(message);
-  void logInformation(String message, [exception]) { }
-  void logInformation2(String message, dynamic exception) { }
+  void logInformation(String message, [exception]) {}
+  void logInformation2(String message, dynamic exception) {}
 }
