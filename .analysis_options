@@ -1,4 +1,4 @@
 analyzer:
-  strong-mode: false
+  strong-mode: true
   exclude:
     - test/data/*
