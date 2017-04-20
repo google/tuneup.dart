@@ -7,7 +7,9 @@ library tuneup.common;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/file_system/file_system.dart' as analysisFile show File;
+import 'package:analyzer/file_system/file_system.dart' as analysisFile
+    show File;
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -30,7 +32,13 @@ abstract class Command {
 
 class Project {
   final List<String> PUB_FOLDERS = [
-    'benchmark', 'bin', 'example', 'lib', 'test', 'tool', 'web'
+    'benchmark',
+    'bin',
+    'example',
+    'lib',
+    'test',
+    'tool',
+    'web'
   ];
 
   final Directory dir;
@@ -39,33 +47,37 @@ class Project {
   List<Glob> _excludes = [];
 
   Project(this.dir, this.logger) {
-    String name = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-    analysisFile.File file = PhysicalResourceProvider.INSTANCE.getFile(name);
-    if (!file.exists) return;
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    analysisFile.File file =
+        resourceProvider.getFile(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
+    if (!file.exists) {
+      file =
+          resourceProvider.getFile(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    }
+    if (file.exists) {
+      AnalysisOptionsProvider analysisOptions = new AnalysisOptionsProvider();
+      Map options = analysisOptions.getOptionsFromFile(file);
 
-    AnalysisOptionsProvider analysisOptions = new AnalysisOptionsProvider();
-    Map options = analysisOptions.getOptionsFromFile(file);
-
-    if (options == null || options.isEmpty) return;
-
-    // Handle excludes.
-    // analyzer:
-    //   exclude:
-    //     - test/data/*
-    dynamic analyzerSection = options['analyzer'];
-    if (analyzerSection is Map) {
-      dynamic excludes = analyzerSection['exclude'];
-      if (excludes is List) {
-        _excludes.addAll(excludes
-          .where((ex) => ex is String)
-          .map((String st) => new Glob(st))
-        );
+      if (options != null && options.isNotEmpty) {
+        // Handle excludes.
+        // analyzer:
+        //   exclude:
+        //     - test/data/*
+        dynamic analyzerSection = options['analyzer'];
+        if (analyzerSection is Map) {
+          dynamic excludes = analyzerSection['exclude'];
+          if (excludes is List) {
+            _excludes.addAll(excludes
+                .where((ex) => ex is String)
+                .map((String st) => new Glob(st)));
+          }
+        }
       }
     }
   }
 
   String get name {
-    if (pubspec.containsKey('name'))  {
+    if (pubspec.containsKey('name')) {
       return pubspec['name'];
     } else {
       return p.basename(dir.path);
@@ -102,9 +114,8 @@ class Project {
 
   void print(o) => logger.stdout('${o}');
 
-  void _getFiles(List<File> files, Directory dir, {
-    bool recursive: false, List<String> extensions
-  }) {
+  void _getFiles(List<File> files, Directory dir,
+      {bool recursive: false, List<String> extensions}) {
     if (p.basename(dir.path).startsWith('.')) return;
 
     String projectPath = this.dir.path;
@@ -172,7 +183,7 @@ String discoverEol(String contents) {
   if (index != -1) {
     if (index == 0) {
       return '\n';
-    } else if (contents[index - 1] == '\r'){
+    } else if (contents[index - 1] == '\r') {
       return '\r\n';
     } else {
       return '\n';
@@ -197,9 +208,9 @@ String relativePath(File file) {
  * Run the given Dart script in a new process.
  */
 void runDartScript(String script,
-    {List<String> arguments : const [],
-     String packageRoot,
-     String workingDirectory}) {
+    {List<String> arguments: const [],
+    String packageRoot,
+    String workingDirectory}) {
   List<String> args = [];
 
   if (packageRoot != null) {
@@ -216,10 +227,9 @@ void runDartScript(String script,
  * Run the given executable, with optional arguments and working directory.
  */
 void runProcess(String executable,
-    {List<String> arguments : const [],
-     String workingDirectory}) {
-  ProcessResult result = Process.runSync(
-      executable, arguments, workingDirectory: workingDirectory);
+    {List<String> arguments: const [], String workingDirectory}) {
+  ProcessResult result = Process.runSync(executable, arguments,
+      workingDirectory: workingDirectory);
 
   print(result.stdout.trim());
 
