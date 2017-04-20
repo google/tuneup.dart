@@ -16,7 +16,7 @@ const String experimental = 'experimental';
 
 final Logger _logger = new Logger('analysis_server_lib');
 
-const String generatedProtocolVersion = '1.17.0';
+const String generatedProtocolVersion = '1.18.1';
 
 typedef void MethodSend(String methodName);
 
@@ -225,12 +225,13 @@ class ServerDomain extends Domain {
 }
 
 class ServerConnected {
-  static ServerConnected parse(Map m) => new ServerConnected(m['version'], m['pid']);
+  static ServerConnected parse(Map m) => new ServerConnected(m['version'], m['pid'], sessionId: m['sessionId']);
 
   final String version;
   final int pid;
+  @optional final String sessionId;
 
-  ServerConnected(this.version, this.pid);
+  ServerConnected(this.version, this.pid, {this.sessionId});
 }
 
 class ServerError {
@@ -645,6 +646,12 @@ class EditDomain extends Domain {
     return _call('edit.getRefactoring', m).then(RefactoringResult.parse);
   }
 
+  @experimental
+  Future<StatementCompletionResult> getStatementCompletion(String file, int offset) {
+    Map m = {'file': file, 'offset': offset};
+    return _call('edit.getStatementCompletion', m).then(StatementCompletionResult.parse);
+  }
+
   Future<SortMembersResult> sortMembers(String file) {
     Map m = {'file': file};
     return _call('edit.sortMembers', m).then(SortMembersResult.parse);
@@ -701,6 +708,15 @@ class RefactoringResult {
   @optional final List<String> potentialEdits;
 
   RefactoringResult(this.initialProblems, this.optionsProblems, this.finalProblems, {this.feedback, this.change, this.potentialEdits});
+}
+
+class StatementCompletionResult {
+  static StatementCompletionResult parse(Map m) => new StatementCompletionResult(SourceChange.parse(m['change']), m['whitespaceOnly']);
+
+  final SourceChange change;
+  final bool whitespaceOnly;
+
+  StatementCompletionResult(this.change, this.whitespaceOnly);
 }
 
 class SortMembersResult {
@@ -778,6 +794,8 @@ class DiagnosticDomain extends Domain {
   DiagnosticDomain(Server server) : super(server, 'diagnostic');
 
   Future<DiagnosticsResult> getDiagnostics() => _call('diagnostic.getDiagnostics').then(DiagnosticsResult.parse);
+
+  Future<ServerPortResult> getServerPort() => _call('diagnostic.getServerPort').then(ServerPortResult.parse);
 }
 
 class DiagnosticsResult {
@@ -786,6 +804,14 @@ class DiagnosticsResult {
   final List<ContextData> contexts;
 
   DiagnosticsResult(this.contexts);
+}
+
+class ServerPortResult {
+  static ServerPortResult parse(Map m) => new ServerPortResult(m['port']);
+
+  final int port;
+
+  ServerPortResult(this.port);
 }
 
 // type definitions
@@ -889,7 +915,7 @@ class ChangeContentOverlay implements Jsonable {
 class CompletionSuggestion {
   static CompletionSuggestion parse(Map m) {
     if (m == null) return null;
-    return new CompletionSuggestion(m['kind'], m['relevance'], m['completion'], m['selectionOffset'], m['selectionLength'], m['isDeprecated'], m['isPotential'], docSummary: m['docSummary'], docComplete: m['docComplete'], declaringType: m['declaringType'], element: Element.parse(m['element']), returnType: m['returnType'], parameterNames: m['parameterNames'] == null ? null : new List.from(m['parameterNames']), parameterTypes: m['parameterTypes'] == null ? null : new List.from(m['parameterTypes']), requiredParameterCount: m['requiredParameterCount'], hasNamedParameters: m['hasNamedParameters'], parameterName: m['parameterName'], parameterType: m['parameterType'], importUri: m['importUri']);
+    return new CompletionSuggestion(m['kind'], m['relevance'], m['completion'], m['selectionOffset'], m['selectionLength'], m['isDeprecated'], m['isPotential'], docSummary: m['docSummary'], docComplete: m['docComplete'], declaringType: m['declaringType'], defaultArgumentListString: m['defaultArgumentListString'], defaultArgumentListTextRanges: m['defaultArgumentListTextRanges'] == null ? null : new List.from(m['defaultArgumentListTextRanges']), element: Element.parse(m['element']), returnType: m['returnType'], parameterNames: m['parameterNames'] == null ? null : new List.from(m['parameterNames']), parameterTypes: m['parameterTypes'] == null ? null : new List.from(m['parameterTypes']), requiredParameterCount: m['requiredParameterCount'], hasNamedParameters: m['hasNamedParameters'], parameterName: m['parameterName'], parameterType: m['parameterType'], importUri: m['importUri']);
   }
 
   final String kind;
@@ -902,6 +928,8 @@ class CompletionSuggestion {
   @optional final String docSummary;
   @optional final String docComplete;
   @optional final String declaringType;
+  @optional final String defaultArgumentListString;
+  @optional final List<int> defaultArgumentListTextRanges;
   @optional final Element element;
   @optional final String returnType;
   @optional final List<String> parameterNames;
@@ -912,7 +940,7 @@ class CompletionSuggestion {
   @optional final String parameterType;
   @optional final String importUri;
 
-  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.hasNamedParameters, this.parameterName, this.parameterType, this.importUri});
+  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.defaultArgumentListString, this.defaultArgumentListTextRanges, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.hasNamedParameters, this.parameterName, this.parameterType, this.importUri});
 
   String toString() => '[CompletionSuggestion kind: ${kind}, relevance: ${relevance}, completion: ${completion}, selectionOffset: ${selectionOffset}, selectionLength: ${selectionLength}, isDeprecated: ${isDeprecated}, isPotential: ${isPotential}]';
 }

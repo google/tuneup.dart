@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.17.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.18.1</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -41,9 +41,9 @@
       To ease interoperability with Lisp-based clients (which may not
       be able to easily distinguish between empty lists, empty maps,
       and null), client-to-server communication is allowed to replace
-      any instance of “<tt>{}</tt>” or “<tt>[]</tt>” with null. The
+      any instance of "<tt>{}</tt>" or "<tt>[]</tt>" with null. The
       server will always properly represent empty lists as
-      “<tt>[]</tt>” and empty maps as “<tt>{}</tt>”.
+      "<tt>[]</tt>" and empty maps as "<tt>{}</tt>".
     </p>
     <h3>Communication Structure</h3>
     <p>
@@ -118,29 +118,19 @@
     </p>
     <h3>Eventual Consistency</h3>
     <p>
-      TODO: TBD
+      The analysis server satisfies requests under the principle of
+      <a href="https://en.wikipedia.org/wiki/Eventual_consistency">eventual consistency</a>.
+      That is, in some cases it may return responses with the currently available
+      results while it's catching up with unprocessed changes.
     </p>
     <h3>Domains</h3>
     <p>
-      For convenience, the API is divided into domains. Each domain is
-      specified in a separate section below:
-    </p>
-    <ul>
-      <li><a href="#domain_server">Server</a></li>
-      <li><a href="#domain_analysis">Analysis</a></li>
-      <li><a href="#domain_completion">Code Completion</a></li>
-      <li><a href="#domain_search">Search</a></li>
-      <li><a href="#domain_edit">Edit</a></li>
-      <li><a href="#domain_execution">Execution</a></li>
-    </ul>
-    <p>
-      The specifications of the API’s refer to data structures beyond
-      the standard JSON primitives. These data structures are
+      For convenience, the API is divided into domains. Each domain is specified
+      in a separate section below. The specifications of the API’s refer to data
+      structures beyond the standard JSON primitives. These data structures are
       documented in the section titled <a href="#types">Types</a>.
     </p>
-    <p>
-      To get an overview of the API, you can consult the <a href="#index">index</a>.
-    </p>
+    <toc></toc>
     <h3>Command-line Arguments</h3>
     <p>
       The command-line arguments that can be passed to the server.
@@ -148,27 +138,40 @@
     <h4>Options</h4>
     <blockquote>
     <dl>
-      <dt>--no-error-notification</dt>
+      <dt>--client-id</dt>
       <dd>
-      Disable notifications about errors (see analysis.error). If this
-      flag is not specified then notifications will be sent for all
-      errors produced for all files in the actual analysis roots.
+      <p>
+      Specifies an identifier associated with the client. Used when
+      generating error reports.
+      </p>
+      <p>
+      Clients are strongly encouraged to provide this information in
+      order to improve the quality of information that can be provided
+      to them.
+      </p>
       </dd>
     </dl>
     <dl>
-      <dt>--file-read-mode</dt>
+      <dt>--client-version</dt>
       <dd>
-      An enumeration of the ways files can be read from disk. Some clients
-      normalize end of line characters which would make the file offset and
-      range information incorrect. The default option is <tt>as-is</tt>, but
-      can also be set to <tt>normalize-eol-always</tt>. The default option
-      (<tt>as-is</tt>) reads files as they are on disk. The
-      <tt>normalize-eol-always</tt> option does the following:
-      <ul>
-        <li>'\r\n' is converted to '\n';</li>
-        <li>'\r' by itself is converted to '\n';</li>
-        <li>this happens regardless of the OS editor is running on.</li>
-      </ul>
+      <p>
+      Specifies the version of the client that is communicating with
+      the server. Used when generating error reports.
+      </p>
+      <p>
+        Clients are strongly encouraged to provide this information in
+        order to improve the quality of information that can be provided
+        to them.
+      </p>
+      </dd>
+    </dl>
+    <dl>
+      <dt class="deprecated">--no-error-notification</dt>
+      <dd>
+        <p><b>Deprecated:</b> clients should no longer pass this option in</p>
+        Disable notifications about errors (see analysis.error). If this
+        flag is not specified then notifications will be sent for all
+        errors produced for all files in the actual analysis roots.
       </dd>
     </dl>
     <dl>
@@ -178,10 +181,28 @@
       API is used that requires an index, then an error, <tt>NO_INDEX_GENERATED</tt>,
       will be thrown. The set of API calls that require an index include:
       refactoring calls, code completions and searching.
-      <!-- TODO(jwren/scheglov): make sure that this of APIs that is complete. -->
+      <!-- TODO(jwren/scheglov): make sure that this list of APIs that is complete. -->
+      </dd>
+    </dl>
+    <dl>
+      <dt class="deprecated">--file-read-mode</dt>
+      <dd>
+        <p><b>Deprecated:</b> clients should no longer pass this option in</p>
+        An enumeration of the ways files can be read from disk. Some clients
+        normalize end of line characters which would make the file offset and
+        range information incorrect. The default option is <tt>as-is</tt>, but
+        can also be set to <tt>normalize-eol-always</tt>. The default option
+        (<tt>as-is</tt>) reads files as they are on disk. The
+        <tt>normalize-eol-always</tt> option does the following:
+        <ul>
+          <li>'\r\n' is converted to '\n';</li>
+          <li>'\r' by itself is converted to '\n';</li>
+          <li>this happens regardless of the OS editor is running on.</li>
+        </ul>
       </dd>
     </dl>
     </blockquote>
+    <domains></domains>
     <domain name="server">
       <p>
         The server domain contains API’s related to the execution of
@@ -242,6 +263,10 @@
          <field name="pid">
            <ref>int</ref>
            <p>The process id of the analysis server process.</p>
+         </field>
+         <field name="sessionId" optional="true">
+           <ref>String</ref>
+           <p>The session id for this session.</p>
          </field>
         </params>
       </notification>
@@ -784,7 +809,9 @@
         <result>
         </result>
       </request>
-      <request method="updateOptions">
+      <request method="updateOptions" deprecated="true">
+        <p><b>Deprecated:</b> all of the options can be set by users in
+          an analysis options file.</p>
         <p>
           Update the options controlling analysis based on the given
           set of options. Any options that are not included in the
@@ -824,10 +851,6 @@
           Reports the errors associated with a given file. The set of
           errors included in the notification is always a complete
           list that supersedes any previously reported errors.
-        </p>
-        <p>
-          It is only possible to unsubscribe from this notification by
-          using the command-line flag --no-error-notification.
         </p>
         <params>
           <field name="file">
@@ -1707,7 +1730,7 @@
               refactoring being performed. The data that is expected is
               documented in the section titled <a
               href="#refactorings">Refactorings</a>, labeled as
-              “Options”. This field can be omitted if the refactoring
+              "Options". This field can be omitted if the refactoring
               does not require any options or if the values of those
               options are not known.
             </p>
@@ -1748,7 +1771,7 @@
               being created. The data that is returned is documented
               in the section titled <a
               href="#refactorings">Refactorings</a>, labeled as
-              “Feedback”.
+              "Feedback".
             </p>
           </field>
           <field name="change" optional="true">
@@ -1772,6 +1795,46 @@
               there is a reference to a member from an unknown type. This field
               will be omitted if the change field is omitted or if there are no
               potential edits for the refactoring.
+            </p>
+          </field>
+        </result>
+      </request>
+      <request method="getStatementCompletion" experimental="true">
+        <p>
+          Get the changes required to convert the partial statement at the given
+          location into a syntactically valid statement. If the current statement
+          is already valid the change will insert a newline plus appropriate
+          indentation at the end of the line containing the offset.
+          If a change that makes the statement valid cannot be determined (perhaps
+          because it has not yet been implemented) the statement will be considered
+          already valid and the appropriate change returned.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The file containing the statement to be completed.
+            </p>
+          </field>
+          <field name="offset">
+            <ref>int</ref>
+            <p>
+              The offset used to identify the statement to be completed.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="change">
+            <ref>SourceChange</ref>
+            <p>
+              The change to be applied in order to complete the statement.
+            </p>
+          </field>
+          <field name="whitespaceOnly">
+            <ref>bool</ref>
+            <p>
+              Will be true if the change contains nothing but whitespace
+              characters, or is empty.
             </p>
           </field>
         </result>
@@ -1957,7 +2020,11 @@
           </field>
         </result>
       </request>
-      <request method="setSubscriptions">
+      <request method="setSubscriptions" deprecated="true">
+        <p>
+          <b>Deprecated:</b> the analysis server no longer fires
+          <tt>LAUNCH_DATA</tt> events.
+        </p>
         <p>
           Subscribe for services. All previous subscriptions are replaced by the
           given set of services.
@@ -2020,6 +2087,19 @@
           <field name="contexts">
             <list><ref>ContextData</ref></list>
             <p>The list of analysis contexts.</p>
+          </field>
+        </result>
+      </request>
+      <request method="getServerPort">
+        <p>
+          Return the port of the diagnostic web server. If the server is not running
+          this call will start the server. If unable to start the diagnostic web server,
+          this call will return an error of <tt>DEBUG_PORT_COULD_NOT_BE_OPENED</tt>.
+        </p>
+        <result>
+          <field name="port">
+            <ref>int</ref>
+            <p>The diagnostic server port.</p>
           </field>
         </result>
       </request>
@@ -2160,40 +2240,42 @@
           <value><code>TODO</code></value>
         </enum>
       </type>
-      <type name="AnalysisOptions">
+      <type name="AnalysisOptions" deprecated="true">
+        <p><b>Deprecated:</b> the only reference to this type has been
+          deprecated.</p>
         <p>
           A set of options controlling what kind of analysis is to be
           performed. If the value of a field is omitted the value of the
           option will not be changed.
         </p>
         <object>
-          <field name="enableAsync" optional="true">
+          <field name="enableAsync" optional="true" deprecated="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed async feature.
             </p>
           </field>
-          <field name="enableDeferredLoading" optional="true">
+          <field name="enableDeferredLoading" optional="true" deprecated="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
             </p>
           </field>
-          <field name="enableEnums" optional="true">
+          <field name="enableEnums" optional="true" deprecated="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed enum feature.
             </p>
           </field>
-          <field name="enableNullAwareOperators" optional="true">
+          <field name="enableNullAwareOperators" optional="true" deprecated="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed "null aware operators" feature.
@@ -2386,6 +2468,25 @@
               The class that declares the element being suggested. This
               field is omitted if the suggested element is not a member
               of a class.
+            </p>
+          </field>
+          <field name="defaultArgumentListString" optional="true">
+            <ref>String</ref>
+            <p>
+              A default String for use in generating argument list
+              source contents on the client side.
+            </p>
+          </field>
+          <field name="defaultArgumentListTextRanges" optional="true">
+            <list><ref>int</ref></list>
+            <p>
+              Pairs of offsets and lengths describing 'defaultArgumentListString'
+              text ranges suitable for use by clients to set up linked edits of
+              default argument source contents. For example, given an argument
+              list string 'x, y', the corresponding text range [0, 1, 3, 1],
+              indicates two text ranges of length 1, starting at offsets 0 and 3.
+              Clients can use these ranges to treat the 'x' and 'y' values
+              specially for linked edits.
             </p>
           </field>
           <field name="element" optional="true">
@@ -2642,13 +2743,13 @@
           <value><code>SETTER</code></value>
           <value><code>TOP_LEVEL_VARIABLE</code></value>
           <value><code>TYPE_PARAMETER</code></value>
-          <value>
+          <value deprecated="true">
             <code>UNIT_TEST_GROUP</code>
-            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+            <p><b>Deprecated:</b> support for tests was removed.</p>
           </value>
-          <value>
+          <value deprecated="true">
             <code>UNIT_TEST_TEST</code>
-            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+            <p><b>Deprecated:</b> support for tests was removed.</p>
           </value>
           <value><code>UNKNOWN</code></value>
         </enum>
@@ -3088,8 +3189,8 @@
             <ref>String</ref>
             <p>
               A human-readable description of the kind of element being
-              referenced (such as “class” or “function type
-              alias”). This data is omitted if there is no referenced
+              referenced (such as "class" or "function type
+              alias"). This data is omitted if there is no referenced
               element.
             </p>
           </field>
@@ -3319,13 +3420,13 @@
           <field name="offset">
             <ref>int</ref>
             <p>
-              The offset of the region from which the user can navigate.
+              The offset of the region to which the user can navigate.
             </p>
           </field>
           <field name="length">
             <ref>int</ref>
             <p>
-              The length of the region from which the user can navigate.
+              The length of the region to which the user can navigate.
             </p>
           </field>
           <field name="startLine">
@@ -3702,6 +3803,12 @@
               An "analysis.getErrors" or "analysis.getNavigation" request could
               not be satisfied because the content of the file changed before
               the requested results could be computed.
+            </p>
+          </value>
+          <value>
+            <code>DEBUG_PORT_COULD_NOT_BE_OPENED</code>
+            <p>
+              The server was unable to open a port for the diagnostic server.
             </p>
           </value>
           <value>
@@ -4511,8 +4618,8 @@
             <ref>String</ref>
             <p>
               The human-readable description of the kind of element being
-              renamed (such as “class” or “function type
-              alias”).
+              renamed (such as "class" or "function type
+              alias").
             </p>
           </field>
           <field name="oldName">
