@@ -1175,6 +1175,8 @@ class AnalysisStatus {
   final String analysisTarget;
 
   AnalysisStatus(this.isAnalyzing, {this.analysisTarget});
+
+  String toString() => '[AnalysisStatus isAnalyzing: ${isAnalyzing}]';
 }
 
 class ChangeContentOverlay implements Jsonable {

@@ -46,8 +46,7 @@ Future main(List<String> args) async {
   client.server.onStatus.listen((ServerStatus status) {
     if (status.analysis == null) return;
 
-    AnalysisStatus s = status.analysis;
-    print('analysis status: ${s.isAnalyzing}, ${s.analysisTarget}');
+    print('analysis status: ${status.analysis}');
 
     if (!status.analysis.isAnalyzing) {
       client.server.shutdown();

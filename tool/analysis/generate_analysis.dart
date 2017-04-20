@@ -506,7 +506,7 @@ class TypeDef {
     'SourceEdit',
     'PubStatus',
     'Location',
-    'AnslysisStatus',
+    'AnalysisStatus',
     'AnalysisError',
     'SourceChange',
     'SourceFileEdit',
