@@ -4,10 +4,12 @@
 
 library tuneup.all_tests;
 
+import 'analysis_lib_test.dart' as analysis_lib_test;
 import 'common_test.dart' as common_test;
 import 'integration_test.dart' as integration_test;
 
 void main() {
+  analysis_lib_test.defineTests();
   common_test.defineTests();
   integration_test.defineTests();
 }

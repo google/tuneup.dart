@@ -1,53 +1,58 @@
-
 library analysis_tester;
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:tuneup/src/analysis_server_lib.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
+import 'package:tuneup/src/analysis_server_lib.dart';
 
-Server client;
-
-void main(List<String> args) {
-  if (args.length != 1) {
-    print('usage: dart tool/analysis/analysis_tester.dart <sdk location>');
-    exit(1);
-  }
-
+Future main(List<String> args) async {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen(print);
 
-  String sdk = args.first;
+  String sdk = path.dirname(path.dirname(Platform.resolvedExecutable));
   String snapshot = '${sdk}/bin/snapshots/analysis_server.dart.snapshot';
 
   print('Using analysis server at ${snapshot}.');
+  print('');
 
-  Process.start('dart', [snapshot, '--sdk', sdk]).then((process) {
-    process.exitCode.then((code) => print('analysis server exited: ${code}'));
+  Process process = await Process.start('dart', [snapshot, '--sdk', sdk]);
+  process.exitCode.then((code) => print('analysis server exited: ${code}'));
 
-    Stream<String> inStream =
-        process.stdout.transform(UTF8.decoder).transform(const LineSplitter());
+  Stream<String> inStream =
+      process.stdout.transform(UTF8.decoder).transform(const LineSplitter());
 
-    client = new Server(inStream, (String message) {
-      print('[--> ${message}]');
-      process.stdin.writeln(message);
-    });
-
-    client.server.onConnected.listen((event) {
-      print('server connected: ${event}');
-    });
-
-    client.server.onError.listen((ServerError e) {
-      print('server error: ${e.message}');
-      print(e.stackTrace);
-    });
-
-    client.server.getVersion().then((VersionResult result) {
-      print('version: ${result}, ${result.version}');
-    });
-
-    client.analysis.setAnalysisRoots([Directory.current.path], []);
+  Server client = new Server(inStream, (String message) {
+    print('[--> ${message}]');
+    process.stdin.writeln(message);
   });
+
+  client.server.onConnected.listen((event) {
+    print('server connected: ${event}');
+  });
+
+  client.server.onError.listen((ServerError e) {
+    print('server error: ${e.message}');
+    print(e.stackTrace);
+  });
+
+  client.server.getVersion().then((VersionResult result) {
+    print('version: ${result}, ${result.version}');
+  });
+
+  client.server.setSubscriptions(['STATUS']);
+  client.server.onStatus.listen((ServerStatus status) {
+    if (status.analysis == null) return;
+
+    AnalysisStatus s = status.analysis;
+    print('analysis status: ${s.isAnalyzing}, ${s.analysisTarget}');
+
+    if (!status.analysis.isAnalyzing) {
+      client.server.shutdown();
+    }
+  });
+
+  client.analysis.setAnalysisRoots([Directory.current.path], []);
 }
