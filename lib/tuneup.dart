@@ -11,26 +11,34 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:path/path.dart' as p;
+import 'package:intl/intl_standalone.dart' as intl;
+import 'package:path/path.dart' as path;
 
+import 'src/ansi.dart';
 import 'src/check_command.dart';
 import 'src/clean_command.dart';
 import 'src/common.dart';
 import 'src/init_command.dart';
+import 'src/logger.dart';
 import 'src/stats_command.dart';
 import 'src/trim_command.dart';
 
-export 'src/common.dart' show CliLogger;
+export 'src/logger.dart' show StandardLogger;
 
 // This version must be updated in tandem with the pubspec version.
-const String appVersion = '0.2.6';
+const String appVersion = '0.3.0';
 const String appName = 'tuneup';
 
+// TODO(devoncarew): fix our use of subcommands
+
 class Tuneup {
-  final CliLogger logger;
+  Logger logger;
+  Ansi ansi;
   final Map<String, Command> _commands = {};
 
-  Tuneup([this.logger = const CliLogger()]) {
+  Tuneup({this.logger}) {
+    ansi = new Ansi(terminalSupportsAnsi());
+
     _addCommand(new InitCommand());
     _addCommand(new CheckCommand());
     _addCommand(new StatsCommand());
@@ -42,7 +50,15 @@ class Tuneup {
     _commands[command.name] = command;
   }
 
-  Future processArgs(List<String> args, {Directory directory}) {
+  Future processArgs(List<String> args, {Directory directory}) async {
+    await intl.findSystemLocale();
+
+    return _processArgs(args, directory: directory).whenComplete(() {
+      logger.flush();
+    });
+  }
+
+  Future _processArgs(List<String> args, {Directory directory}) {
     if (directory == null) directory = Directory.current;
 
     ArgParser argParser = _createArgParser();
@@ -58,6 +74,14 @@ class Tuneup {
       } else {
         return new Future.error(e, st);
       }
+    }
+
+    if (options.wasParsed('color')) {
+      ansi = new Ansi(options['color']);
+    }
+
+    if (logger == null) {
+      logger = new StandardLogger(ansi);
     }
 
     if (options.command == null && options.rest.isNotEmpty) {
@@ -86,40 +110,35 @@ class Tuneup {
       directory = dir;
     }
 
-    Project project = new Project(directory, logger);
-    File pubspec = new File(p.join(directory.path, 'pubspec.yaml'));
+    if (options['verbose']) {
+      logger = new VerboseLogger(ansi);
+    }
+
+    Project project = new Project(directory, logger, ansi);
+    File pubspec = new File(path.join(directory.path, 'pubspec.yaml'));
+
+    Command command;
 
     if (options.command == null) {
-      // Run 'check'.
+      // No command specified; run 'check'.
       _out("Running the 'check' command (run with --help for a list of "
           "available commands).");
-
-      Command command = _commands['check'];
-
-      // Verify that we are being run from a project directory.
-      if (!pubspec.existsSync()) {
-        String message =
-            'No pubspec.yaml file found. The tuneup command should be run from '
-            'the root of a project.';
-        _out(message);
-        return new Future.error(new ArgError(message));
-      }
-
-      return command.execute(project, null);
+      command = _commands['check'];
     } else {
-      Command command = _commands[options.command.name];
-
-      // Verify that we are being run from a project directory.
-      if (command.name != 'init' && !pubspec.existsSync()) {
-        String message =
-            'No pubspec.yaml file found. The tuneup command should be run from '
-            'the root of a project.';
-        _out(message);
-        return new Future.error(new ArgError(message));
-      }
-
-      return command.execute(project, options.command);
+      command = _commands[options.command.name];
     }
+
+    // TODO(devoncarew): Do we still want this pubspec check?
+    // Verify that we are being run from a project directory.
+    if (command.name != 'init' && !pubspec.existsSync()) {
+      String message =
+          'No pubspec.yaml file found. The tuneup command should be run from '
+          'the root of a project.';
+      _out(message);
+      return new Future.error(new ArgError(message));
+    }
+
+    return command.execute(project, options.command);
   }
 
   ArgParser _createArgParser() {
@@ -130,6 +149,13 @@ class Tuneup {
         negatable: false, help: 'Display the application version.');
     parser.addOption('dart-sdk', hide: true, help: 'the path to the sdk');
     parser.addOption('directory', help: 'The project directory to analyze.');
+    parser.addFlag('verbose',
+        negatable: false,
+        abbr: 'v',
+        help: 'Display verbose diagnostic output.');
+    parser.addFlag('color',
+        help: 'Use asni colors when printing messages.',
+        defaultsTo: terminalSupportsAnsi());
 
     // init
     ArgParser commandParser = parser.addCommand('init');
@@ -172,7 +198,9 @@ class Tuneup {
     });
   }
 
-  void _out(String str) => logger.stdout(str);
+  void _out(String str) {
+    logger == null ? print(str) : logger.stdout(str);
+  }
 }
 
 class ArgError implements Exception {

@@ -16,13 +16,13 @@ void defineTests() {
     });
 
     test('format', () {
-      expect(format(0), '0');
-      expect(format(10), '10');
-      expect(format(100), '100');
-      expect(format(1000), '1,000');
-      expect(format(10000), '10,000');
-      expect(format(100000), '100,000');
-      expect(format(1000000), '1,000,000');
+      expect(formatNumber(0), '0');
+      expect(formatNumber(10), '10');
+      expect(formatNumber(100), '100');
+      expect(formatNumber(1000), '1,000');
+      expect(formatNumber(10000), '10,000');
+      expect(formatNumber(100000), '100,000');
+      expect(formatNumber(1000000), '1,000,000');
     });
   });
 }

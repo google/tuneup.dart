@@ -2,8 +2,6 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library tuneup.info_command;
-
 import 'dart:async';
 import 'dart:io';
 
@@ -42,8 +40,8 @@ class StatsCommand extends Command {
 
     // "Found 288 Dart files and 44,863 lines of code."
     // TODO: print a breakdown by type
-    project.print('Found ${format(all.files)} source files and '
-        '${format(all.lines)} lines of code.');
+    project.print('Found ${formatNumber(all.files)} source files and '
+        '${formatNumber(all.lines)} lines of code.');
 
     return new Future.value();
   }

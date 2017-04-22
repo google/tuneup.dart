@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:tuneup/src/common.dart';
+import 'package:tuneup/src/logger.dart';
 import 'package:tuneup/tuneup.dart';
 import 'package:unittest/unittest.dart';
 
@@ -28,7 +29,7 @@ void defineTests() {
     });
 
     test('no args', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
@@ -42,7 +43,7 @@ void defineTests() {
     });
 
     test('bad command', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['foo_command'], directory: foo).then((_) {
         fail('expected exception');
       }).catchError((e) {
@@ -51,7 +52,7 @@ void defineTests() {
     });
 
     test('bad arg', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['--foo', 'bar'], directory: foo).then((_) {
         fail('should have thrown');
       }).catchError((e) {
@@ -61,7 +62,7 @@ void defineTests() {
     });
 
     test('--help', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['--help'], directory: foo).then((_) {
         expect(logger.out,
             contains('A tool to improve visibility into your Dart projects.'));
@@ -71,7 +72,7 @@ void defineTests() {
     });
 
     test('--version', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['--version'], directory: foo).then((_) {
         expect(logger.out, contains('tuneup version '));
         expect(logger.err, isEmpty);
@@ -79,14 +80,14 @@ void defineTests() {
     });
 
     test('init', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       });
     });
 
     test('stats', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
         File other = new File('foo/web/index.html');
@@ -101,7 +102,7 @@ void defineTests() {
     });
 
     test('trim', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       File hello = new File('foo/bin/helloworld.dart');
       File other = new File('foo/web/index.html');
 
@@ -118,7 +119,7 @@ void defineTests() {
     });
 
     test('check', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
@@ -132,7 +133,7 @@ void defineTests() {
     });
 
     test('check with errors', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         File f = new File('foo/bin/helloworld.dart');
         expect(f.existsSync(), true);
@@ -151,7 +152,7 @@ void defineTests() {
     });
 
     test('clean', () {
-      Tuneup tuneup = new Tuneup(logger);
+      Tuneup tuneup = new Tuneup(logger: logger);
       return tuneup.processArgs(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
@@ -171,15 +172,23 @@ void _setupPub() {
   Process.runSync('pub', ['get'], workingDirectory: 'foo');
 }
 
-class _Logger implements CliLogger {
+class _Logger implements Logger {
   StringBuffer _out = new StringBuffer();
   StringBuffer _err = new StringBuffer();
+  StringBuffer _trc = new StringBuffer();
 
   void stdout(String message) => _out.writeln(message);
   void stderr(String message) => _err.writeln(message);
+  void trace(String message) => _trc.writeln(message);
+
+  Progress progress(String message) => new SimpleProgress(this, message);
+  void progressFinished(Progress progress) { }
+
+  void flush() { }
 
   String get out => _out.toString();
   String get err => _err.toString();
+  String get trc => _trc.toString();
 }
 
 String _errorText = '''

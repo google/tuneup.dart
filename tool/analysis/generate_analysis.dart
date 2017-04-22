@@ -1,4 +1,6 @@
-library generate_analysis_lib;
+// Copyright (c) 2017, Google Inc. Please see the AUTHORS file for details.
+// All rights reserved. Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 import 'dart:collection' show LinkedHashMap;
 import 'dart:io';
@@ -772,6 +774,10 @@ class PrimitiveType extends Type {
 }
 
 final String _headerCode = r'''
+// Copyright (c) 2017, Google Inc. Please see the AUTHORS file for details.
+// All rights reserved. Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // This is a generated file.
 
 /// A library to access the analysis server API.

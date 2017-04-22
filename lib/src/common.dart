@@ -2,8 +2,6 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library tuneup.common;
-
 import 'dart:async';
 import 'dart:io';
 
@@ -13,13 +11,15 @@ import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:path/path.dart' as p;
+import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
 import 'package:quiver/pattern.dart' show Glob;
 import 'package:yaml/yaml.dart' as yaml;
 
-final bool isWindows = Platform.isWindows;
+import 'ansi.dart';
+import 'logger.dart';
 
-final String pathSep = isWindows ? r'\' : '/';
+final String pathSep = Platform.isWindows ? r'\' : '/';
 
 abstract class Command {
   final String name;
@@ -31,7 +31,7 @@ abstract class Command {
 }
 
 class Project {
-  final List<String> PUB_FOLDERS = [
+  final List<String> kPubFolders = [
     'benchmark',
     'bin',
     'example',
@@ -42,11 +42,12 @@ class Project {
   ];
 
   final Directory dir;
-  final CliLogger logger;
+  final StandardLogger logger;
+  final Ansi ansi;
 
   List<Glob> _excludes = [];
 
-  Project(this.dir, this.logger) {
+  Project(this.dir, this.logger, this.ansi) {
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
     analysisFile.File file =
         resourceProvider.getFile(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
@@ -80,21 +81,21 @@ class Project {
     if (pubspec.containsKey('name')) {
       return pubspec['name'];
     } else {
-      return p.basename(dir.path);
+      return path.basename(dir.path);
     }
   }
 
-  String get sdkPath => p.dirname(p.dirname(Platform.resolvedExecutable));
+  String get sdkPath => path.dirname(path.dirname(Platform.resolvedExecutable));
 
-  String get packagePath => p.join(dir.path, 'packages');
+  String get packagePath => path.join(dir.path, 'packages');
 
   Directory get packageDir => new Directory(packagePath);
 
-  File get packagesFile => new File(p.join(dir.path, '.packages'));
+  File get packagesFile => new File(path.join(dir.path, '.packages'));
 
   yaml.YamlMap get pubspec {
     return yaml.loadYaml(
-        new File(p.join(dir.path, 'pubspec.yaml')).readAsStringSync());
+        new File(path.join(dir.path, 'pubspec.yaml')).readAsStringSync());
   }
 
   List<File> getSourceFiles({List<String> extensions: const ['dart']}) {
@@ -102,9 +103,9 @@ class Project {
 
     _getFiles(files, dir, recursive: false, extensions: extensions);
 
-    PUB_FOLDERS.forEach((name) {
-      if (FileSystemEntity.isDirectorySync(p.join(dir.path, name))) {
-        Directory other = new Directory(p.join(dir.path, name));
+    kPubFolders.forEach((name) {
+      if (FileSystemEntity.isDirectorySync(path.join(dir.path, name))) {
+        Directory other = new Directory(path.join(dir.path, name));
         _getFiles(files, other, recursive: true, extensions: extensions);
       }
     });
@@ -112,11 +113,15 @@ class Project {
     return files;
   }
 
+  void error(o) => logger.stderr('${o}');
+
   void print(o) => logger.stdout('${o}');
+
+  void trace(o) => logger.trace('${o}');
 
   void _getFiles(List<File> files, Directory dir,
       {bool recursive: false, List<String> extensions}) {
-    if (p.basename(dir.path).startsWith('.')) return;
+    if (path.basename(dir.path).startsWith('.')) return;
 
     String projectPath = this.dir.path;
     if (!projectPath.endsWith(Platform.pathSeparator)) {
@@ -148,26 +153,11 @@ class ExitCode {
   ExitCode(this.code);
 }
 
-class CliLogger {
-  const CliLogger();
-
-  void stdout(String message) => print(message);
-  void stderr(String message) => print(message);
-}
-
 String pluralize(String word, int count) => count == 1 ? word : '${word}s';
 
-String format(int i) {
-  String str = '${i}';
-  int pos = str.length - 3;
+final NumberFormat kNumberFormat = new NumberFormat.decimalPattern();
 
-  while (pos > 0) {
-    str = str.substring(0, pos) + ',' + str.substring(pos);
-    pos -= 3;
-  }
-
-  return str;
-}
+String formatNumber(int i) => kNumberFormat.format(i);
 
 String getFileExtension(String path) {
   int index = path.lastIndexOf(pathSep);
@@ -190,7 +180,7 @@ String discoverEol(String contents) {
     }
   }
 
-  return isWindows ? '\r\n' : '\n';
+  return Platform.isWindows ? '\r\n' : '\n';
 }
 
 String relativePath(File file) {
