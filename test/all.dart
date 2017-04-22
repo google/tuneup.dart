@@ -2,8 +2,6 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library tuneup.all_tests;
-
 import 'analysis_lib_test.dart' as analysis_lib_test;
 import 'common_test.dart' as common_test;
 import 'integration_test.dart' as integration_test;

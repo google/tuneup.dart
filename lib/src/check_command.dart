@@ -2,276 +2,192 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library tuneup.check_command;
-
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/file_system/file_system.dart' hide File;
-import 'package:analyzer/file_system/file_system.dart' as analysisFile
-    show File;
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/sdk_ext.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart'; // ignore: deprecated_member_use
-import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
-import 'package:package_config/discovery.dart' as pkgDiscovery;
-import 'package:package_config/packages.dart' show Packages;
-import 'package:path/path.dart' as p;
+import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
 
+import 'analysis_server_lib.dart';
+import 'ansi.dart';
 import 'common.dart';
+import 'logger.dart';
 
 class CheckCommand extends Command {
-  bool _useStrongMode;
-  bool _enableSuperMixins;
+  CheckCommand() : super('check', 'analyze all the source code in the project');
 
-  CheckCommand()
-      : super('check',
-            'analyze all the source code in the project - fail if there are any errors');
-
-  Future execute(Project project, [args]) {
-    bool ignoreInfos = args == null ? false : args['ignore-infos'];
+  Future execute(Project project, [args]) async {
+    Progress progress = project.logger.progress('Checking project ${project.name}');
 
     Stopwatch stopwatch = new Stopwatch()..start();
 
-    AnalysisEngine.instance.taskManager;
+    // init
+    String vmPath = Platform.resolvedExecutable;
+    String sdk = path.dirname(path.dirname(vmPath));
+    String snapshot = '${sdk}/bin/snapshots/analysis_server.dart.snapshot';
 
-    DartSdk sdk = new FolderBasedDartSdk(PhysicalResourceProvider.INSTANCE,
-        PhysicalResourceProvider.INSTANCE.getFolder(project.sdkPath));
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    AnalysisEngine.instance.processRequiredPlugins();
+    project.trace('Using sdk from ${sdk}.');
 
-    List<UriResolver> resolvers = [new DartUriResolver(sdk)];
+    List<String> processArgs = [snapshot, '--sdk', sdk];
+    project.trace('starting ${vmPath} ${processArgs.join(' ')}');
+    Process process = await Process.start(vmPath, processArgs);
+    Stream<String> inStream = process.stdout
+        .transform(UTF8.decoder)
+        .transform(const LineSplitter())
+        .map((String str) {
+      const int max = 140;
+      String s = str.length > max ? '${str.substring(0, max)}...' : str;
+      project.trace('<-- $s');
+      return str;
+    });
 
-    Packages packages;
+    Server client = new Server(inStream, (String message) {
+      project.trace('--> ${message}');
+      process.stdin.writeln(message);
+    });
 
-    if (project.packagesFile.existsSync()) {
-      packages = _discoverPackagespec(project.dir);
-      resolvers
-          .add(new SdkExtUriResolver(_createPackageFilePackageMap(packages)));
-    } else if (project.packageDir.existsSync()) {
-      // ignore: deprecated_member_use
-      new PackageUriResolver([new JavaFile(project.packagePath)]);
-      resolvers
-          .add(new SdkExtUriResolver(_createPackagesFolderPackageMap(project)));
+    Completer completer = new Completer();
+
+    process.exitCode.then((int code) {
+      if (!completer.isCompleted) {
+        completer.completeError('analysis exited early (exit code $code');
+      }
+    });
+
+    await client.server.onConnected.first.timeout(new Duration(seconds: 10));
+
+    // handle errors
+    client.server.onError.listen((ServerError e) {
+      StackTrace trace =
+          e.stackTrace == null ? null : new StackTrace.fromString(e.stackTrace);
+      completer.completeError(e, trace);
+    });
+
+    client.server.setSubscriptions(['STATUS']);
+    client.server.onStatus.listen((ServerStatus status) {
+      if (status.analysis == null) return;
+
+      if (!status.analysis.isAnalyzing) {
+        // notify finished
+        completer.complete(true);
+        process.kill();
+      }
+    });
+
+    Map<String, List<AnalysisError>> errorMap = new Map();
+    client.analysis.onErrors.listen((AnalysisErrors e) {
+      errorMap[e.file] = e.errors;
+    });
+
+    String analysisRoot = path.canonicalize(project.dir.absolute.path);
+    client.analysis.setAnalysisRoots([analysisRoot], []);
+
+    // wait for finish
+    try {
+      await completer.future;
+    } catch (error, st) {
+      progress.cancel();
+
+      project.logger.stderr('${error}');
+      project.logger.stderr('${st}');
+
+      return new ExitCode(1);
     }
 
-    resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
+    progress.finish();
 
-    context.sourceFactory = new SourceFactory(resolvers, packages);
-    AnalysisEngine.instance.logger = new _Logger();
+    // sort, filter, print errors
+    List<String> sources = errorMap.keys.toList();
+    List<AnalysisError> errors =
+        sources.map((String key) => errorMap[key]).fold([], (List a, List b) {
+      a.addAll(b);
+      return a;
+    });
 
-    _processAnalysisOptions(context);
+    // Don't show todos.
+    errors.removeWhere((e) => e.code == 'todo');
 
-    if (_useStrongMode != null) options.strongMode = _useStrongMode;
-    if (_enableSuperMixins != null)
-      options.enableSuperMixins = _enableSuperMixins;
-
-    context.analysisOptions = options;
-
-    if (_useStrongMode) {
-      project.print('Checking project ${project.name} (using strong mode)...');
-    } else {
-      project.print('Checking project ${project.name}...');
-    }
-
-    List<Source> sources = [];
-    ChangeSet changeSet = new ChangeSet();
-    for (File file in project.getSourceFiles()) {
-      JavaFile sourceFile = new JavaFile(file.path);
-      Source source = new FileBasedSource(sourceFile, sourceFile.toURI());
-      Uri uri = context.sourceFactory.restoreUri(source);
-      if (uri != null) source = new FileBasedSource(sourceFile, uri);
-      sources.add(source);
-      changeSet.addedSource(source);
-    }
-    context.applyChanges(changeSet);
-
-    // Ensure that the analysis engine performs all remaining work.
-    AnalysisResult result = context.performAnalysisTask();
-    while (result.hasMoreWork) {
-      result = context.performAnalysisTask();
-    }
-
-    List<AnalysisErrorInfo> errorInfos = [];
-
-    for (Source source in sources) {
-      context.computeErrors(source);
-      errorInfos.add(context.getErrors(source));
-    }
-
-    stopwatch.stop();
-
-    List<_Error> errors =
-        new List.from(errorInfos.expand((AnalysisErrorInfo info) {
-      return info.errors
-          .map((error) => new _Error(error, info.lineInfo, project.dir.path));
-    }).where((_Error error) => error.errorType != ErrorType.TODO));
-
+    // Optionally filter out infos.
+    bool ignoreInfos = args == null ? false : args['ignore-infos'];
     int ignoredCount = 0;
-
     if (ignoreInfos) {
-      List<_Error> newErrors = errors
-          .where((e) => e.severity != ErrorSeverity.INFO.ordinal)
-          .toList();
+      List<AnalysisError> newErrors =
+          errors.where((e) => e.severity != 'INFO').toList();
       ignoredCount = errors.length - newErrors.length;
       errors = newErrors;
     }
 
-    errors.sort();
+    // sort by severity, file, offset
+    errors.sort((AnalysisError one, AnalysisError two) {
+      int comp = _severityLevel(two.severity) - _severityLevel(one.severity);
+      if (comp != 0) return comp;
 
-    var seconds = (stopwatch.elapsedMilliseconds ~/ 100) * 100 / 1000;
-    project.print(
-        '${errors.isEmpty ? "No" : errors.length} ${pluralize("issue", errors.length)} '
-        'found; analyzed ${sources.length} source ${pluralize("file", sources.length)} '
-        'in ${seconds}s.');
+      if (one.location.file != two.location.file) {
+        return one.location.file.compareTo(two.location.file);
+      }
 
-    if (ignoredCount > 0) {
-      project.print(
-          '(${ignoredCount} ${pluralize("issue", ignoredCount)} ignored)');
-    }
+      return one.location.offset - two.location.offset;
+    });
+
+    final Ansi ansi = project.ansi;
+
+    Map<String, String> colorMap = {
+      'ERROR': ansi.red,
+      'WARNING': ansi.yellow,
+    };
 
     if (errors.isNotEmpty) {
       project.print('');
-      errors.forEach(
-          (e) => project.print('[${e.severityName}] ${e.description}'));
+
+      errors.forEach((AnalysisError e) {
+        String issueColor = colorMap[e.severity] ?? '';
+
+        String severity = e.severity.toLowerCase();
+
+        String location = e.location.file;
+        if (location.startsWith(analysisRoot)) {
+          location = location.substring(analysisRoot.length + 1);
+        }
+        location =
+            '$location:${e.location.startLine}:${e.location.startColumn}';
+
+        String message = e.message;
+        if (message.endsWith('.')) {
+          message = message.substring(0, message.length - 1);
+        }
+
+        String code = e.code;
+
+        project.print('  ${issueColor}$severity${ansi.none} ${ansi.bullet} '
+            '${ansi.bold}$message${ansi.none} at $location ${ansi.bullet} ($code)');
+      });
+
+      project.print('');
     }
 
+    String ignoreMessage = '';
+    if (ignoredCount > 0) {
+      ignoreMessage =
+          ' (${formatNumber(ignoredCount)} ${pluralize("issue", ignoredCount)} ignored)';
+    }
+
+    final NumberFormat secondsFormat = new NumberFormat('0.0');
+    double seconds = stopwatch.elapsedMilliseconds / 1000.0;
+    project.print(
+        '${errors.isEmpty ? "No" : formatNumber(errors.length)} ${pluralize("issue", errors.length)} '
+        'found; analyzed ${formatNumber(sources.length)} source ${pluralize("file", sources.length)} '
+        'in ${secondsFormat.format(seconds)}s${ignoreMessage}.');
+
+    // return the results
     return errors.isEmpty
         ? new Future.value()
         : new Future.error(new ExitCode(1));
   }
-
-  Map<String, List<Folder>> _createPackageFilePackageMap(Packages packages) {
-    Map<String, List<Folder>> m = {};
-    Map<String, Uri> packageMap = packages.asMap();
-
-    for (String name in packageMap.keys) {
-      Uri uri = packageMap[name];
-      if (uri.scheme == 'file') {
-        String file = uri.path;
-        m[name] = [PhysicalResourceProvider.INSTANCE.getFolder(file)];
-      }
-    }
-
-    return m;
-  }
-
-  Map<String, List<Folder>> _createPackagesFolderPackageMap(Project project) {
-    Map<String, List<Folder>> m = {};
-
-    for (FileSystemEntity entity
-        in project.packageDir.listSync(followLinks: false)) {
-      if (entity is Link) {
-        String name = p.basename(entity.path);
-        String target = entity.targetSync();
-        m[name] = [PhysicalResourceProvider.INSTANCE.getFolder(target)];
-      }
-    }
-
-    return m;
-  }
-
-  /// Return discovered packagespec or `null` if none is found.
-  Packages _discoverPackagespec(Directory dir) {
-    try {
-      Packages packages =
-          pkgDiscovery.findPackagesFromFile(new Uri.directory(dir.path));
-      if (packages != Packages.noPackages) return packages;
-    } catch (_) {
-      // Ignore and fall through to null.
-    }
-
-    return null;
-  }
-
-  void _processAnalysisOptions(AnalysisContext context) {
-    String name = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-    analysisFile.File file = PhysicalResourceProvider.INSTANCE.getFile(name);
-    if (!file.exists) return;
-
-    AnalysisOptionsProvider analysisOptions = new AnalysisOptionsProvider();
-    Map<String, dynamic> options = analysisOptions.getOptionsFromFile(file);
-
-    if (options == null || options.isEmpty) return;
-
-    // Handle options processors.
-    // TODO(devoncarew): Cleanup as part of move to analyzer 0.30.0-alpha.1.
-    // List processors = AnalysisEngine.instance.optionsPlugin.optionsProcessors;
-    // processors.forEach((processor) => processor.optionsProcessed(context, options));
-    // configureContextOptions(context, options);
-
-    // Handle strong mode.
-    // analyzer:
-    //   strong-mode: true
-    var analyzerSection = options['analyzer'];
-    if (analyzerSection is Map) {
-      if (analyzerSection['strong-mode'] is bool)
-        _useStrongMode = analyzerSection['strong-mode'];
-
-      var languageOpts = analyzerSection['language'];
-      if (languageOpts is Map) {
-        if (languageOpts['enableSuperMixins'] is bool) {
-          _enableSuperMixins = languageOpts['enableSuperMixins'];
-        }
-      }
-    }
-  }
 }
 
-class _Error implements Comparable<_Error> {
-  final AnalysisError error;
-  final LineInfo lineInfo;
-  final String projectPath;
-
-  _Error(this.error, this.lineInfo, this.projectPath);
-
-  ErrorType get errorType => error.errorCode.type;
-  int get severity => error.errorCode.errorSeverity.ordinal;
-  String get severityName => error.errorCode.errorSeverity.displayName;
-  String get message => error.message;
-  String get messageSentenceFragment {
-    String m = message;
-    return m.endsWith('.') ? m.substring(0, m.length - 1) : m;
-  }
-
-  String get code => error.errorCode.name.toLowerCase();
-
-  String get description =>
-      '${messageSentenceFragment} at ${location}, line ${line} ($code).';
-
-  int get line => lineInfo.getLocation(error.offset).lineNumber;
-
-  String get location {
-    String path = error.source.fullName;
-    if (path.startsWith(projectPath)) {
-      path = path.substring(projectPath.length + 1);
-    }
-    return path;
-  }
-
-  int compareTo(_Error other) {
-    if (severity == other.severity) {
-      int cmp = error.source.fullName.compareTo(other.error.source.fullName);
-      return cmp == 0 ? line - other.line : cmp;
-    } else {
-      return other.severity - severity;
-    }
-  }
-
-  String toString() => '[${severityName}] ${description}';
-}
-
-class _Logger extends Logger {
-  void logError(String message, [exception]) => stderr.writeln(message);
-  void logError2(String message, dynamic exception) => stderr.writeln(message);
-  void logInformation(String message, [exception]) {}
-  void logInformation2(String message, dynamic exception) {}
+int _severityLevel(String severity) {
+  if (severity == 'ERROR') return 2;
+  if (severity == 'WARNING') return 1;
+  return 0;
 }

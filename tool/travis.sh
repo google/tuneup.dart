@@ -8,7 +8,7 @@
 set -e
 
 # Verify that the libraries are error free.
-dart -c bin/tuneup.dart check
+dart -c bin/tuneup.dart check --no-color
 
 # Run the tests.
 dart -c test/all.dart
