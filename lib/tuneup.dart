@@ -23,8 +23,6 @@ import 'src/logger.dart';
 import 'src/stats_command.dart';
 import 'src/trim_command.dart';
 
-export 'src/logger.dart' show StandardLogger;
-
 // This version must be updated in tandem with the pubspec version.
 const String appVersion = '0.3.0';
 const String appName = 'tuneup';

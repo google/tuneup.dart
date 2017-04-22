@@ -10,7 +10,7 @@ import 'package:analyzer/file_system/file_system.dart' as analysisFile
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide Logger;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:quiver/pattern.dart' show Glob;
@@ -42,7 +42,7 @@ class Project {
   ];
 
   final Directory dir;
-  final StandardLogger logger;
+  final Logger logger;
   final Ansi ansi;
 
   List<Glob> _excludes = [];
