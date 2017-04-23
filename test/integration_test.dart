@@ -182,9 +182,9 @@ class _Logger implements Logger {
   void trace(String message) => _trc.writeln(message);
 
   Progress progress(String message) => new SimpleProgress(this, message);
-  void progressFinished(Progress progress) { }
+  void progressFinished(Progress progress) {}
 
-  void flush() { }
+  void flush() {}
 
   String get out => _out.toString();
   String get err => _err.toString();

@@ -5,7 +5,7 @@
 import 'dart:io';
 
 bool terminalSupportsAnsi() {
-  return !Platform.isWindows && stdioType(stdout) == StdioType.TERMINAL;
+  return stdout.supportsAnsiEscapes && stdioType(stdout) == StdioType.TERMINAL;
 }
 
 class Ansi {
@@ -28,7 +28,7 @@ class Ansi {
 
   Ansi(this.useAnsi);
 
-  String get bullet => Platform.isWindows ? '-' : '•';
+  String get bullet => stdout.supportsAnsiEscapes ? '•' : '-';
 
   String _code(String ansiCode) => useAnsi ? ansiCode : '';
 }
