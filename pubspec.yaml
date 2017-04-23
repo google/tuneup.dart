@@ -19,6 +19,7 @@ dependencies:
   yaml: '>=2.0.0 <3.0.0'
 
 dev_dependencies:
+  html: ^0.13.0
   unittest: ^0.11.0
 
 # Add the bin/tuneup.dart script to the scripts pub installs.
