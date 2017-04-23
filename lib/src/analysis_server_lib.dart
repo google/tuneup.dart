@@ -8,9 +8,11 @@
 library analysis_server_lib;
 
 import 'dart:async';
-import 'dart:convert' show JSON, JsonCodec;
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 /// @optional
 const String optional = 'optional';
@@ -25,6 +27,35 @@ const String generatedProtocolVersion = '1.18.1';
 typedef void MethodSend(String methodName);
 
 class Server {
+  static Future<Server> createFromDefaults(
+      {onRead(String), onWrite(String)}) async {
+    Completer<int> processCompleter = new Completer();
+    String sdk = path.dirname(path.dirname(Platform.resolvedExecutable));
+    String snapshot = '${sdk}/bin/snapshots/analysis_server.dart.snapshot';
+
+    Process process = await Process
+        .start(Platform.resolvedExecutable, [snapshot, '--sdk', sdk]);
+    process.exitCode.then((code) => processCompleter.complete(code));
+
+    Stream<String> inStream = process.stdout
+        .transform(UTF8.decoder)
+        .transform(const LineSplitter())
+        .map((String message) {
+      if (onRead != null) onRead(message);
+      return message;
+    });
+
+    Server server = new Server(inStream, (String message) {
+      if (onWrite != null) onWrite(message);
+      process.stdin.writeln(message);
+    }, processCompleter, process.kill);
+
+    return server;
+  }
+
+  final Completer<int> processCompleter;
+  final Function _processKillHandler;
+
   StreamSubscription _streamSub;
   Function _writeMessage;
   int _id = 0;
@@ -44,7 +75,9 @@ class Server {
   ExecutionDomain _execution;
   DiagnosticDomain _diagnostic;
 
-  Server(Stream<String> inStream, void writeMessage(String message)) {
+  Server(Stream<String> inStream, void writeMessage(String message),
+      this.processCompleter,
+      [this._processKillHandler]) {
     configure(inStream, writeMessage);
 
     _server = new ServerDomain(this);
@@ -72,8 +105,6 @@ class Server {
   }
 
   void configure(Stream<String> inStream, void writeMessage(String message)) {
-    dispose();
-
     _streamSub = inStream.listen(_processMessage);
     _writeMessage = writeMessage;
   }
@@ -82,6 +113,10 @@ class Server {
     if (_streamSub != null) _streamSub.cancel();
     //_completers.values.forEach((c) => c.completeError('disposed'));
     _completers.clear();
+
+    if (_processKillHandler != null) {
+      _processKillHandler();
+    }
   }
 
   void _processMessage(String message) {

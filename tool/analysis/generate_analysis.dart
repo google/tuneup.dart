@@ -74,6 +74,10 @@ class Api {
     gen.writeln("typedef void MethodSend(String methodName);");
     gen.writeln();
     gen.writeStatement('class Server {');
+    gen.writeln(_staticFactory);
+    gen.writeStatement('final Completer<int> processCompleter;');
+    gen.writeStatement('final Function _processKillHandler;');
+    gen.writeln();
     gen.writeStatement('StreamSubscription _streamSub;');
     gen.writeStatement('Function _writeMessage;');
     gen.writeStatement('int _id = 0;');
@@ -92,7 +96,8 @@ class Api {
         (Domain domain) => gen.writeln('${domain.className} _${domain.name};'));
     gen.writeln();
     gen.writeStatement(
-        'Server(Stream<String> inStream, void writeMessage(String message)) {');
+        'Server(Stream<String> inStream, void writeMessage(String message), \n'
+        'this.processCompleter, [this._processKillHandler]) {');
     gen.writeStatement('configure(inStream, writeMessage);');
     gen.writeln();
     domains.forEach((Domain domain) =>
@@ -784,9 +789,11 @@ final String _headerCode = r'''
 library analysis_server_lib;
 
 import 'dart:async';
-import 'dart:convert' show JSON, JsonCodec;
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 /// @optional
 const String optional = 'optional';
@@ -795,6 +802,35 @@ const String optional = 'optional';
 const String experimental = 'experimental';
 
 final Logger _logger = new Logger('analysis_server_lib');
+
+''';
+
+final String _staticFactory = r'''
+  static Future<Server> createFromDefaults(
+      {onRead(String), onWrite(String)}) async {
+    Completer<int> processCompleter = new Completer();
+    String sdk = path.dirname(path.dirname(Platform.resolvedExecutable));
+    String snapshot = '${sdk}/bin/snapshots/analysis_server.dart.snapshot';
+
+    Process process = await Process
+        .start(Platform.resolvedExecutable, [snapshot, '--sdk', sdk]);
+    process.exitCode.then((code) => processCompleter.complete(code));
+
+    Stream<String> inStream = process.stdout
+        .transform(UTF8.decoder)
+        .transform(const LineSplitter())
+        .map((String message) {
+      if (onRead != null) onRead(message);
+      return message;
+    });
+
+    Server server = new Server(inStream, (String message) {
+      if (onWrite != null) onWrite(message);
+      process.stdin.writeln(message);
+    }, processCompleter, process.kill);
+
+    return server;
+  }
 
 ''';
 
@@ -807,8 +843,6 @@ final String _serverCode = r'''
   }
 
   void configure(Stream<String> inStream, void writeMessage(String message)) {
-    dispose();
-
     _streamSub = inStream.listen(_processMessage);
     _writeMessage = writeMessage;
   }
@@ -817,6 +851,10 @@ final String _serverCode = r'''
     if (_streamSub != null) _streamSub.cancel();
     //_completers.values.forEach((c) => c.completeError('disposed'));
     _completers.clear();
+
+    if (_processKillHandler != null) {
+      _processKillHandler();
+    }
   }
 
   void _processMessage(String message) {

@@ -3,8 +3,6 @@
 // license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
@@ -18,38 +16,22 @@ class CheckCommand extends Command {
   CheckCommand() : super('check', 'analyze all the source code in the project');
 
   Future execute(Project project, [args]) async {
-    Progress progress = project.logger.progress('Checking project ${project.name}');
+    Progress progress =
+        project.logger.progress('Checking project ${project.name}');
 
     Stopwatch stopwatch = new Stopwatch()..start();
 
     // init
-    String vmPath = Platform.resolvedExecutable;
-    String sdk = path.dirname(path.dirname(vmPath));
-    String snapshot = '${sdk}/bin/snapshots/analysis_server.dart.snapshot';
-
-    project.trace('Using sdk from ${sdk}.');
-
-    List<String> processArgs = [snapshot, '--sdk', sdk];
-    project.trace('starting ${vmPath} ${processArgs.join(' ')}');
-    Process process = await Process.start(vmPath, processArgs);
-    Stream<String> inStream = process.stdout
-        .transform(UTF8.decoder)
-        .transform(const LineSplitter())
-        .map((String str) {
+    Server client = await Server.createFromDefaults(onRead: (String msg) {
       const int max = 140;
-      String s = str.length > max ? '${str.substring(0, max)}...' : str;
+      String s = msg.length > max ? '${msg.substring(0, max)}...' : msg;
       project.trace('<-- $s');
-      return str;
-    });
-
-    Server client = new Server(inStream, (String message) {
-      project.trace('--> ${message}');
-      process.stdin.writeln(message);
+    }, onWrite: (String msg) {
+      project.trace('[--> $msg]');
     });
 
     Completer completer = new Completer();
-
-    process.exitCode.then((int code) {
+    client.processCompleter.future.then((int code) {
       if (!completer.isCompleted) {
         completer.completeError('analysis exited early (exit code $code');
       }
@@ -71,7 +53,7 @@ class CheckCommand extends Command {
       if (!status.analysis.isAnalyzing) {
         // notify finished
         completer.complete(true);
-        process.kill();
+        client.dispose();
       }
     });
 
