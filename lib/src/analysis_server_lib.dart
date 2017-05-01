@@ -214,6 +214,12 @@ abstract class Jsonable {
 
 abstract class RefactoringOptions implements Jsonable {}
 
+abstract class ContentOverlayType {
+  final String type;
+
+  ContentOverlayType(this.type);
+}
+
 class RequestError {
   static RequestError parse(String method, Map m) {
     if (m == null) return null;
@@ -250,16 +256,15 @@ class ServerDomain extends Domain {
   ServerDomain(Server server) : super(server, 'server');
 
   Stream<ServerConnected> get onConnected {
-    return _listen('server.connected', ServerConnected.parse)
-        as Stream<ServerConnected>;
+    return _listen('server.connected', ServerConnected.parse);
   }
 
   Stream<ServerError> get onError {
-    return _listen('server.error', ServerError.parse) as Stream<ServerError>;
+    return _listen('server.error', ServerError.parse);
   }
 
   Stream<ServerStatus> get onStatus {
-    return _listen('server.status', ServerStatus.parse) as Stream<ServerStatus>;
+    return _listen('server.status', ServerStatus.parse);
   }
 
   Future<VersionResult> getVersion() =>
@@ -321,58 +326,47 @@ class AnalysisDomain extends Domain {
   AnalysisDomain(Server server) : super(server, 'analysis');
 
   Stream<AnalysisAnalyzedFiles> get onAnalyzedFiles {
-    return _listen('analysis.analyzedFiles', AnalysisAnalyzedFiles.parse)
-        as Stream<AnalysisAnalyzedFiles>;
+    return _listen('analysis.analyzedFiles', AnalysisAnalyzedFiles.parse);
   }
 
   Stream<AnalysisErrors> get onErrors {
-    return _listen('analysis.errors', AnalysisErrors.parse)
-        as Stream<AnalysisErrors>;
+    return _listen('analysis.errors', AnalysisErrors.parse);
   }
 
   Stream<AnalysisFlushResults> get onFlushResults {
-    return _listen('analysis.flushResults', AnalysisFlushResults.parse)
-        as Stream<AnalysisFlushResults>;
+    return _listen('analysis.flushResults', AnalysisFlushResults.parse);
   }
 
   Stream<AnalysisFolding> get onFolding {
-    return _listen('analysis.folding', AnalysisFolding.parse)
-        as Stream<AnalysisFolding>;
+    return _listen('analysis.folding', AnalysisFolding.parse);
   }
 
   Stream<AnalysisHighlights> get onHighlights {
-    return _listen('analysis.highlights', AnalysisHighlights.parse)
-        as Stream<AnalysisHighlights>;
+    return _listen('analysis.highlights', AnalysisHighlights.parse);
   }
 
   Stream<AnalysisImplemented> get onImplemented {
-    return _listen('analysis.implemented', AnalysisImplemented.parse)
-        as Stream<AnalysisImplemented>;
+    return _listen('analysis.implemented', AnalysisImplemented.parse);
   }
 
   Stream<AnalysisInvalidate> get onInvalidate {
-    return _listen('analysis.invalidate', AnalysisInvalidate.parse)
-        as Stream<AnalysisInvalidate>;
+    return _listen('analysis.invalidate', AnalysisInvalidate.parse);
   }
 
   Stream<AnalysisNavigation> get onNavigation {
-    return _listen('analysis.navigation', AnalysisNavigation.parse)
-        as Stream<AnalysisNavigation>;
+    return _listen('analysis.navigation', AnalysisNavigation.parse);
   }
 
   Stream<AnalysisOccurrences> get onOccurrences {
-    return _listen('analysis.occurrences', AnalysisOccurrences.parse)
-        as Stream<AnalysisOccurrences>;
+    return _listen('analysis.occurrences', AnalysisOccurrences.parse);
   }
 
   Stream<AnalysisOutline> get onOutline {
-    return _listen('analysis.outline', AnalysisOutline.parse)
-        as Stream<AnalysisOutline>;
+    return _listen('analysis.outline', AnalysisOutline.parse);
   }
 
   Stream<AnalysisOverrides> get onOverrides {
-    return _listen('analysis.overrides', AnalysisOverrides.parse)
-        as Stream<AnalysisOverrides>;
+    return _listen('analysis.overrides', AnalysisOverrides.parse);
   }
 
   Future<ErrorsResult> getErrors(String file) {
@@ -422,7 +416,7 @@ class AnalysisDomain extends Domain {
   Future setSubscriptions(Map<String, List<String>> subscriptions) =>
       _call('analysis.setSubscriptions', {'subscriptions': subscriptions});
 
-  Future updateContent(Map<String, dynamic> files) =>
+  Future updateContent(Map<String, ContentOverlayType> files) =>
       _call('analysis.updateContent', {'files': files});
 
   Future updateOptions(AnalysisOptions options) =>
@@ -646,8 +640,7 @@ class CompletionDomain extends Domain {
   CompletionDomain(Server server) : super(server, 'completion');
 
   Stream<CompletionResults> get onResults {
-    return _listen('completion.results', CompletionResults.parse)
-        as Stream<CompletionResults>;
+    return _listen('completion.results', CompletionResults.parse);
   }
 
   Future<SuggestionsResult> getSuggestions(String file, int offset) {
@@ -691,8 +684,7 @@ class SearchDomain extends Domain {
   SearchDomain(Server server) : super(server, 'search');
 
   Stream<SearchResults> get onResults {
-    return _listen('search.results', SearchResults.parse)
-        as Stream<SearchResults>;
+    return _listen('search.results', SearchResults.parse);
   }
 
   Future<FindElementReferencesResult> findElementReferences(
@@ -984,8 +976,7 @@ class ExecutionDomain extends Domain {
   ExecutionDomain(Server server) : super(server, 'execution');
 
   Stream<ExecutionLaunchData> get onLaunchData {
-    return _listen('execution.launchData', ExecutionLaunchData.parse)
-        as Stream<ExecutionLaunchData>;
+    return _listen('execution.launchData', ExecutionLaunchData.parse);
   }
 
   Future<CreateContextResult> createContext(String contextRoot) {
@@ -1076,18 +1067,17 @@ class ServerPortResult {
 
 // type definitions
 
-class AddContentOverlay implements Jsonable {
+class AddContentOverlay extends ContentOverlayType implements Jsonable {
   static AddContentOverlay parse(Map m) {
     if (m == null) return null;
-    return new AddContentOverlay(m['type'], m['content']);
+    return new AddContentOverlay(m['content']);
   }
 
-  final String type;
   final String content;
 
-  Map toMap() => _stripNullValues({'type': type, 'content': content});
+  AddContentOverlay(this.content) : super('add');
 
-  AddContentOverlay(this.type, this.content);
+  Map toMap() => _stripNullValues({'type': type, 'content': content});
 }
 
 class AnalysisError {
@@ -1180,6 +1170,16 @@ class AnalysisOptions implements Jsonable {
   @optional
   final bool generateLints;
 
+  AnalysisOptions(
+      {this.enableAsync,
+      this.enableDeferredLoading,
+      this.enableEnums,
+      this.enableNullAwareOperators,
+      this.enableSuperMixins,
+      this.generateDart2jsHints,
+      this.generateHints,
+      this.generateLints});
+
   Map toMap() => _stripNullValues({
         'enableAsync': enableAsync,
         'enableDeferredLoading': enableDeferredLoading,
@@ -1190,16 +1190,6 @@ class AnalysisOptions implements Jsonable {
         'generateHints': generateHints,
         'generateLints': generateLints
       });
-
-  AnalysisOptions(
-      {this.enableAsync,
-      this.enableDeferredLoading,
-      this.enableEnums,
-      this.enableNullAwareOperators,
-      this.enableSuperMixins,
-      this.generateDart2jsHints,
-      this.generateHints,
-      this.generateLints});
 }
 
 class AnalysisStatus {
@@ -1218,25 +1208,22 @@ class AnalysisStatus {
   String toString() => '[AnalysisStatus isAnalyzing: ${isAnalyzing}]';
 }
 
-class ChangeContentOverlay implements Jsonable {
+class ChangeContentOverlay extends ContentOverlayType implements Jsonable {
   static ChangeContentOverlay parse(Map m) {
     if (m == null) return null;
-    return new ChangeContentOverlay(
-        m['type'],
-        m['edits'] == null
-            ? null
-            : new List.from(m['edits'].map((obj) => SourceEdit.parse(obj))));
+    return new ChangeContentOverlay(m['edits'] == null
+        ? null
+        : new List.from(m['edits'].map((obj) => SourceEdit.parse(obj))));
   }
 
-  final String type;
   final List<SourceEdit> edits;
 
-  Map toMap() => _stripNullValues({'type': type, 'edits': edits});
+  ChangeContentOverlay(this.edits) : super('change');
 
-  ChangeContentOverlay(this.type, this.edits);
+  Map toMap() => _stripNullValues({'type': type, 'edits': edits});
 }
 
-class CompletionSuggestion {
+class CompletionSuggestion implements Jsonable {
   static CompletionSuggestion parse(Map m) {
     if (m == null) return null;
     return new CompletionSuggestion(
@@ -1328,6 +1315,30 @@ class CompletionSuggestion {
       this.parameterName,
       this.parameterType,
       this.importUri});
+
+  Map toMap() => _stripNullValues({
+        'kind': kind,
+        'relevance': relevance,
+        'completion': completion,
+        'selectionOffset': selectionOffset,
+        'selectionLength': selectionLength,
+        'isDeprecated': isDeprecated,
+        'isPotential': isPotential,
+        'docSummary': docSummary,
+        'docComplete': docComplete,
+        'declaringType': declaringType,
+        'defaultArgumentListString': defaultArgumentListString,
+        'defaultArgumentListTextRanges': defaultArgumentListTextRanges,
+        'element': element,
+        'returnType': returnType,
+        'parameterNames': parameterNames,
+        'parameterTypes': parameterTypes,
+        'requiredParameterCount': requiredParameterCount,
+        'hasNamedParameters': hasNamedParameters,
+        'parameterName': parameterName,
+        'parameterType': parameterType,
+        'importUri': importUri
+      });
 
   String toString() =>
       '[CompletionSuggestion kind: ${kind}, relevance: ${relevance}, completion: ${completion}, selectionOffset: ${selectionOffset}, selectionLength: ${selectionLength}, isDeprecated: ${isDeprecated}, isPotential: ${isPotential}]';
@@ -1736,17 +1747,15 @@ class RefactoringProblem {
   RefactoringProblem(this.severity, this.message, {this.location});
 }
 
-class RemoveContentOverlay implements Jsonable {
+class RemoveContentOverlay extends ContentOverlayType implements Jsonable {
   static RemoveContentOverlay parse(Map m) {
     if (m == null) return null;
-    return new RemoveContentOverlay(m['type']);
+    return new RemoveContentOverlay();
   }
 
-  final String type;
+  RemoveContentOverlay() : super('remove');
 
   Map toMap() => _stripNullValues({'type': type});
-
-  RemoveContentOverlay(this.type);
 }
 
 class SearchResult {
@@ -1813,14 +1822,14 @@ class SourceEdit implements Jsonable {
   @optional
   final String id;
 
+  SourceEdit(this.offset, this.length, this.replacement, {this.id});
+
   Map toMap() => _stripNullValues({
         'offset': offset,
         'length': length,
         'replacement': replacement,
         'id': id
       });
-
-  SourceEdit(this.offset, this.length, this.replacement, {this.id});
 
   String toString() =>
       '[SourceEdit offset: ${offset}, length: ${length}, replacement: ${replacement}]';
