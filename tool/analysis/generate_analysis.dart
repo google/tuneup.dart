@@ -59,6 +59,7 @@ class Api {
 
     // Mark some types as jsonable - we can send them back over the wire.
     findRef('SourceEdit').setCallParam();
+    findRef('CompletionSuggestion').setCallParam();
     typedefs
         .where((def) => def.name.endsWith('ContentOverlay'))
         .forEach((def) => def.setCallParam());
@@ -296,7 +297,12 @@ class Request {
 
       if (args.length == 1 && !args.first.optional) {
         Field arg = args.first;
-        gen.write("Future ${method}(${arg.type} ${arg.name}) => ");
+        String type = arg.type.toString();
+
+        if (method == 'updateContent') {
+          type = 'Map<String, ContentOverlayType>';
+        }
+        gen.write("Future ${method}(${type} ${arg.name}) => ");
         gen.writeln(
             "_call('${domain.name}.${method}', {'${arg.name}': ${arg.name}});");
         return;
@@ -379,9 +385,7 @@ class Notification {
 
   void generate(DartGenerator gen) {
     gen.writeln("Stream<${className}> get ${onName} {");
-    // TODO: I don't really like having to do this cast.
-    gen.writeln(
-        "return _listen('${title}', ${className}.parse) as Stream<${className}>;");
+    gen.writeln("return _listen('${title}', ${className}.parse);");
     gen.writeln("}");
   }
 
@@ -581,13 +585,22 @@ class TypeDef {
       return;
     }
 
+    bool isContentOverlay = name.endsWith('ContentOverlay');
+    List<Field> _fields = fields;
+    if (isContentOverlay) {
+      _fields = _fields.toList()..removeAt(0);
+    }
+
     gen.writeln();
     if (experimental) gen.writeln('@experimental');
-    gen.writeln('class ${name} ${callParam ? "implements Jsonable " : ""}{');
+    gen.write('class ${name}');
+    if (isContentOverlay) gen.write(' extends ContentOverlayType');
+    if (callParam) gen.write(' implements Jsonable');
+    gen.writeln(' {');
     gen.writeln('static ${name} parse(Map m) {');
     gen.writeln('if (m == null) return null;');
     gen.write('return new ${name}(');
-    gen.write(fields.map((Field field) {
+    gen.write(_fields.map((Field field) {
       String val = "m['${field.name}']";
       if (field.optional) {
         return "${field.name}: ${field.type.jsonConvert(val)}";
@@ -597,21 +610,18 @@ class TypeDef {
     }).join(', '));
     gen.writeln(');');
     gen.writeln('}');
-    if (fields.isNotEmpty) {
+
+    if (_fields.isNotEmpty) {
       gen.writeln();
-      fields.forEach((field) {
+      _fields.forEach((field) {
         if (field.optional) gen.write('@optional ');
         gen.writeln('final ${field.type} ${field.name};');
       });
     }
-    if (callParam) {
-      gen.writeln();
-      String map = fields.map((f) => "'${f.name}': ${f.name}").join(', ');
-      gen.writeln("Map toMap() => _stripNullValues({${map}});");
-    }
+
     gen.writeln();
     gen.write('${name}(');
-    gen.write(fields.map((field) {
+    gen.write(_fields.map((field) {
       StringBuffer buf = new StringBuffer();
       if (field.optional && fields.firstWhere((a) => a.optional) == field)
         buf.write('{');
@@ -620,7 +630,20 @@ class TypeDef {
         buf.write('}');
       return buf.toString();
     }).join(', '));
-    gen.writeln(');');
+    if (isContentOverlay) {
+      String type = name
+          .substring(0, name.length - 'ContentOverlay'.length)
+          .toLowerCase();
+      gen.writeln(") : super('$type');");
+    } else {
+      gen.writeln(');');
+    }
+
+    if (callParam) {
+      gen.writeln();
+      String map = fields.map((f) => "'${f.name}': ${f.name}").join(', ');
+      gen.writeln("Map toMap() => _stripNullValues({${map}});");
+    }
 
     if (hasEquals) {
       gen.writeln();
@@ -951,6 +974,12 @@ abstract class Jsonable {
 }
 
 abstract class RefactoringOptions implements Jsonable {
+}
+
+abstract class ContentOverlayType {
+  final String type;
+
+  ContentOverlayType(this.type);
 }
 
 class RequestError {
