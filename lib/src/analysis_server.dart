@@ -293,7 +293,7 @@ class ServerDomain extends Domain {
   /// has been no change in the status represented by that parameter.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "STATUS" in the list of services passed in a
+  /// by including the value `"STATUS"` in the list of services passed in a
   /// server.setSubscriptions request.
   Stream<ServerStatus> get onStatus {
     return _listen('server.status', ServerStatus.parse);
@@ -391,8 +391,8 @@ class AnalysisDomain extends Domain {
   /// Reports the paths of the files that are being analyzed.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "ANALYZED_FILES" in the list of services passed in
-  /// an analysis.setGeneralSubscriptions request.
+  /// by including the value `"ANALYZED_FILES"` in the list of services passed
+  /// in an analysis.setGeneralSubscriptions request.
   Stream<AnalysisAnalyzedFiles> get onAnalyzedFiles {
     return _listen('analysis.analyzedFiles', AnalysisAnalyzedFiles.parse);
   }
@@ -425,7 +425,7 @@ class AnalysisDomain extends Domain {
   /// as a class.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "FOLDING" in the list of services passed in an
+  /// by including the value `"FOLDING"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   Stream<AnalysisFolding> get onFolding {
     return _listen('analysis.folding', AnalysisFolding.parse);
@@ -434,7 +434,7 @@ class AnalysisDomain extends Domain {
   /// Reports the highlight regions associated with a given file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "HIGHLIGHTS" in the list of services passed in an
+  /// by including the value `"HIGHLIGHTS"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   Stream<AnalysisHighlights> get onHighlights {
     return _listen('analysis.highlights', AnalysisHighlights.parse);
@@ -444,8 +444,8 @@ class AnalysisDomain extends Domain {
   /// that are implemented or overridden in a file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "IMPLEMENTED" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"IMPLEMENTED"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   Stream<AnalysisImplemented> get onImplemented {
     return _listen('analysis.implemented', AnalysisImplemented.parse);
   }
@@ -454,7 +454,7 @@ class AnalysisDomain extends Domain {
   /// single file has become invalid and should be re-requested.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "INVALIDATE" in the list of services passed in an
+  /// by including the value `"INVALIDATE"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   Stream<AnalysisInvalidate> get onInvalidate {
     return _listen('analysis.invalidate', AnalysisInvalidate.parse);
@@ -463,7 +463,7 @@ class AnalysisDomain extends Domain {
   /// Reports the navigation targets associated with a given file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "NAVIGATION" in the list of services passed in an
+  /// by including the value `"NAVIGATION"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   Stream<AnalysisNavigation> get onNavigation {
     return _listen('analysis.navigation', AnalysisNavigation.parse);
@@ -472,8 +472,8 @@ class AnalysisDomain extends Domain {
   /// Reports the occurrences of references to elements within a single file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OCCURRENCES" in the list of services passed in an
-  /// analysis.setSubscriptions request.
+  /// by including the value `"OCCURRENCES"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
   Stream<AnalysisOccurrences> get onOccurrences {
     return _listen('analysis.occurrences', AnalysisOccurrences.parse);
   }
@@ -481,7 +481,7 @@ class AnalysisDomain extends Domain {
   /// Reports the outline associated with a single file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OUTLINE" in the list of services passed in an
+  /// by including the value `"OUTLINE"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   Stream<AnalysisOutline> get onOutline {
     return _listen('analysis.outline', AnalysisOutline.parse);
@@ -490,7 +490,7 @@ class AnalysisDomain extends Domain {
   /// Reports the overriding members in a file.
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
-  /// by including the value "OVERRIDES" in the list of services passed in an
+  /// by including the value `"OVERRIDES"` in the list of services passed in an
   /// analysis.setSubscriptions request.
   Stream<AnalysisOverrides> get onOverrides {
     return _listen('analysis.overrides', AnalysisOverrides.parse);
@@ -504,17 +504,17 @@ class AnalysisDomain extends Domain {
   /// that can be computed will be returned and the response will contain an
   /// error to indicate why the errors could not be computed. If the content of
   /// the file changes after this request was received but before a response
-  /// could be sent, then an error of type CONTENT_MODIFIED will be generated.
+  /// could be sent, then an error of type `CONTENT_MODIFIED` will be generated.
   ///
   /// This request is intended to be used by clients that cannot asynchronously
-  /// apply updated error information. Clients that can apply error information
-  /// as it becomes available should use the information provided by the
-  /// 'analysis.errors' notification.
+  /// apply updated error information. Clients that **can** apply error
+  /// information as it becomes available should use the information provided by
+  /// the 'analysis.errors' notification.
   ///
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_ERRORS_INVALID_FILE will be generated.
+  /// `GET_ERRORS_INVALID_FILE` will be generated.
   Future<ErrorsResult> getErrors(String file) {
     Map m = {'file': file};
     return _call('analysis.getErrors', m).then(ErrorsResult.parse);
@@ -533,7 +533,7 @@ class AnalysisDomain extends Domain {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_REACHABLE_SOURCES_INVALID_FILE will be generated.
+  /// `GET_REACHABLE_SOURCES_INVALID_FILE` will be generated.
   Future<ReachableSourcesResult> getReachableSources(String file) {
     Map m = {'file': file};
     return _call('analysis.getReachableSources', m)
@@ -555,7 +555,7 @@ class AnalysisDomain extends Domain {
   /// the given file is out of date, then the response for this request will be
   /// delayed until it has been computed. If the content of the file changes
   /// after this request was received but before a response could be sent, then
-  /// an error of type CONTENT_MODIFIED will be generated.
+  /// an error of type `CONTENT_MODIFIED` will be generated.
   ///
   /// If a navigation region overlaps (but extends either before or after) the
   /// given region of the file it will be included in the result. This means
@@ -567,7 +567,7 @@ class AnalysisDomain extends Domain {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// GET_NAVIGATION_INVALID_FILE will be generated.
+  /// `GET_NAVIGATION_INVALID_FILE` will be generated.
   Future<NavigationResult> getNavigation(String file, int offset, int length) {
     Map m = {'file': file, 'offset': offset, 'length': length};
     return _call('analysis.getNavigation', m).then(NavigationResult.parse);
@@ -581,8 +581,8 @@ class AnalysisDomain extends Domain {
   /// If no analysis roots are provided, then all current analysis roots will be
   /// re-analyzed. If an empty list of analysis roots is provided, then nothing
   /// will be re-analyzed. If the list contains one or more paths that are not
-  /// currently analysis roots, then an error of type INVALID_ANALYSIS_ROOT will
-  /// be generated.
+  /// currently analysis roots, then an error of type `INVALID_ANALYSIS_ROOT`
+  /// will be generated.
   Future reanalyze({List<String> roots}) {
     Map m = {};
     if (roots != null) m['roots'] = roots;
@@ -834,11 +834,11 @@ class AnalysisNavigation {
   final List<NavigationRegion> regions;
 
   /// The navigation targets referenced in the file. They are referenced by
-  /// NavigationRegions by their index in this array.
+  /// `NavigationRegion`s by their index in this array.
   final List<NavigationTarget> targets;
 
   /// The files containing navigation targets referenced in the file. They are
-  /// referenced by NavigationTargets by their index in this array.
+  /// referenced by `NavigationTarget`s by their index in this array.
   final List<String> files;
 
   AnalysisNavigation(this.file, this.regions, this.targets, this.files);
@@ -1248,8 +1248,8 @@ class EditDomain extends Domain {
   /// If a request is made for a file which does not exist, or which is not
   /// currently subject to analysis (e.g. because it is not associated with any
   /// analysis root specified to analysis.setAnalysisRoots), an error of type
-  /// FORMAT_INVALID_FILE will be generated. If the source contains syntax
-  /// errors, an error of type FORMAT_WITH_ERRORS will be generated.
+  /// `FORMAT_INVALID_FILE` will be generated. If the source contains syntax
+  /// errors, an error of type `FORMAT_WITH_ERRORS` will be generated.
   Future<FormatResult> format(
       String file, int selectionOffset, int selectionLength,
       {int lineLength}) {
@@ -1290,7 +1290,7 @@ class EditDomain extends Domain {
   /// Get the changes required to perform a refactoring.
   ///
   /// If another refactoring request is received during the processing of this
-  /// one, an error of type REFACTORING_REQUEST_CANCELLED will be generated.
+  /// one, an error of type `REFACTORING_REQUEST_CANCELLED` will be generated.
   Future<RefactoringResult> getRefactoring(
       String kind, String file, int offset, int length, bool validateOnly,
       {RefactoringOptions options}) {
@@ -1323,24 +1323,26 @@ class EditDomain extends Domain {
   /// Sort all of the directives, unit and class members of the given Dart file.
   ///
   /// If a request is made for a file that does not exist, does not belong to an
-  /// analysis root or is not a Dart file, SORT_MEMBERS_INVALID_FILE will be
+  /// analysis root or is not a Dart file, `SORT_MEMBERS_INVALID_FILE` will be
   /// generated.
   ///
-  /// If the Dart file has scan or parse errors, SORT_MEMBERS_PARSE_ERRORS will
-  /// be generated.
+  /// If the Dart file has scan or parse errors, `SORT_MEMBERS_PARSE_ERRORS`
+  /// will be generated.
   Future<SortMembersResult> sortMembers(String file) {
     Map m = {'file': file};
     return _call('edit.sortMembers', m).then(SortMembersResult.parse);
   }
 
   /// Organizes all of the directives - removes unused imports and sorts
-  /// directives of the given Dart file according to the Dart Style Guide.
+  /// directives of the given Dart file according to the (Dart Style
+  /// Guide)[https://www.dartlang.org/articles/style-guide/].
   ///
   /// If a request is made for a file that does not exist, does not belong to an
-  /// analysis root or is not a Dart file, FILE_NOT_ANALYZED will be generated.
+  /// analysis root or is not a Dart file, `FILE_NOT_ANALYZED` will be
+  /// generated.
   ///
   /// If directives of the Dart file cannot be organized, for example because it
-  /// has scan or parse errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR
+  /// has scan or parse errors, or by other reasons, `ORGANIZE_DIRECTIVES_ERROR`
   /// will be generated. The message will provide details about the reason.
   Future<OrganizeDirectivesResult> organizeDirectives(String file) {
     Map m = {'file': file};
@@ -1440,8 +1442,8 @@ class RefactoringResult {
 
   /// Data used to provide feedback to the user. The structure of the data is
   /// dependent on the kind of refactoring being created. The data that is
-  /// returned is documented in the section titled Refactorings, labeled as
-  /// "Feedback".
+  /// returned is documented in the section titled
+  /// (Refactorings)[#refactorings], labeled as "Feedback".
   @optional
   final RefactoringFeedback feedback;
 
@@ -1514,7 +1516,7 @@ class ExecutionDomain extends Domain {
   ///
   /// This notification is not subscribed to by default. Clients can subscribe
   /// by including the value "LAUNCH_DATA" in the list of services passed in an
-  /// execution.setSubscriptions request.
+  /// `execution.setSubscriptions` request.
   Stream<ExecutionLaunchData> get onLaunchData {
     return _listen('execution.launchData', ExecutionLaunchData.parse);
   }
@@ -1538,21 +1540,21 @@ class ExecutionDomain extends Domain {
   /// or map a file to the URI that it corresponds to in the execution context.
   ///
   /// Exactly one of the file and uri fields must be provided. If both fields
-  /// are provided, then an error of type INVALID_PARAMETER will be generated.
+  /// are provided, then an error of type `INVALID_PARAMETER` will be generated.
   /// Similarly, if neither field is provided, then an error of type
-  /// INVALID_PARAMETER will be generated.
+  /// `INVALID_PARAMETER` will be generated.
   ///
   /// If the file field is provided and the value is not the path of a file
   /// (either the file does not exist or the path references something other
-  /// than a file), then an error of type INVALID_PARAMETER will be generated.
+  /// than a file), then an error of type `INVALID_PARAMETER` will be generated.
   ///
   /// If the uri field is provided and the value is not a valid URI or if the
   /// URI references something that is not a file (either a file that does not
   /// exist or something other than a file), then an error of type
-  /// INVALID_PARAMETER will be generated.
+  /// `INVALID_PARAMETER` will be generated.
   ///
   /// If the contextRoot used to create the execution context does not exist,
-  /// then an error of type INVALID_EXECUTION_CONTEXT will be generated.
+  /// then an error of type `INVALID_EXECUTION_CONTEXT` will be generated.
   Future<MapUriResult> mapUri(String id, {String file, String uri}) {
     Map m = {'id': id};
     if (file != null) m['file'] = file;
@@ -1627,7 +1629,8 @@ class DiagnosticDomain extends Domain {
 
   /// Return the port of the diagnostic web server. If the server is not running
   /// this call will start the server. If unable to start the diagnostic web
-  /// server, this call will return an error of DEBUG_PORT_COULD_NOT_BE_OPENED.
+  /// server, this call will return an error of
+  /// `DEBUG_PORT_COULD_NOT_BE_OPENED`.
   Future<ServerPortResult> getServerPort() =>
       _call('diagnostic.getServerPort').then(ServerPortResult.parse);
 }
@@ -1777,14 +1780,14 @@ class AnalysisOptions implements Jsonable {
         generateLints: m['generateLints']);
   }
 
-  /// Deprecated: this feature is always enabled.
+  /// **Deprecated:** this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed async feature.
   @deprecated
   @optional
   final bool enableAsync;
 
-  /// Deprecated: this feature is always enabled.
+  /// **Deprecated:** this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed deferred
   /// loading feature.
@@ -1792,14 +1795,14 @@ class AnalysisOptions implements Jsonable {
   @optional
   final bool enableDeferredLoading;
 
-  /// Deprecated: this feature is always enabled.
+  /// **Deprecated:** this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed enum feature.
   @deprecated
   @optional
   final bool enableEnums;
 
-  /// Deprecated: this feature is always enabled.
+  /// **Deprecated:** this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed "null aware
   /// operators" feature.
@@ -1880,7 +1883,7 @@ class AnalysisStatus {
 ///
 /// It is an error to use this overlay on a file that does not yet have a file
 /// content overlay or that has had its overlay removed via
-/// RemoveContentOverlay.
+/// (RemoveContentOverlay)[#type_RemoveContentOverlay].
 ///
 /// If any of the edits cannot be applied due to its offset or length being out
 /// of range, an INVALID_OVERLAY_CHANGE error will be reported.

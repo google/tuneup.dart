@@ -475,7 +475,7 @@ class Field implements Comparable {
   }
 
   void generate(DartGenerator gen) {
-    gen.writeDocs(docs);
+//    if (!deprecated) gen.writeDocs(docs);
     if (deprecated) gen.writeln('@deprecated');
     if (optional) gen.write('@optional ');
     gen.writeStatement('final ${type} ${name};');
@@ -851,7 +851,7 @@ class _ConcatTextVisitor extends TreeVisitor {
 
   visitElement(Element node) {
     if (node.localName == 'b') {
-      buffer.write('__${node.text}__');
+      buffer.write('**${node.text}**');
     } else if (node.localName == 'a') {
       buffer.write('(${node.text})[${node.attributes['href']}]');
     } else if (node.localName == 'tt') {
@@ -866,10 +866,9 @@ final RegExp _wsRegexp = new RegExp(r'\s+', multiLine: true);
 
 String _collectDocs(Element element) {
   String str = element.children.where((e) => e.localName == 'p').map((Element e) {
-    // TODO: handle <b> and <tt>
     _ConcatTextVisitor visitor = new _ConcatTextVisitor();
-    String text = e.text; //visitor.visit(e).toString();
-    return text.trim().replaceAll(_wsRegexp, ' ');
+    visitor.visit(e);
+    return visitor.toString().trim().replaceAll(_wsRegexp, ' ');
   }).join('\n\n');
   return str.isEmpty ? null : str;
 }
