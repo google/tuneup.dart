@@ -1780,32 +1780,15 @@ class AnalysisOptions implements Jsonable {
         generateLints: m['generateLints']);
   }
 
-  /// **Deprecated:** this feature is always enabled.
-  ///
-  /// True if the client wants to enable support for the proposed async feature.
   @deprecated
   @optional
   final bool enableAsync;
-
-  /// **Deprecated:** this feature is always enabled.
-  ///
-  /// True if the client wants to enable support for the proposed deferred
-  /// loading feature.
   @deprecated
   @optional
   final bool enableDeferredLoading;
-
-  /// **Deprecated:** this feature is always enabled.
-  ///
-  /// True if the client wants to enable support for the proposed enum feature.
   @deprecated
   @optional
   final bool enableEnums;
-
-  /// **Deprecated:** this feature is always enabled.
-  ///
-  /// True if the client wants to enable support for the proposed "null aware
-  /// operators" feature.
   @deprecated
   @optional
   final bool enableNullAwareOperators;

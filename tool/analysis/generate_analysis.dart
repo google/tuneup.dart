@@ -238,9 +238,12 @@ class Domain {
       gen.writeln(');');
       gen.writeln();
       fields.forEach((field) {
-        gen.writeDocs(field.docs);
+        if (field.deprecated) {
+          gen.write('@deprecated ');
+        } else {
+          gen.writeDocs(field.docs);
+        }
         if (field.optional) gen.write('@optional ');
-        if (field.deprecated) gen.write('@deprecated ');
         gen.writeln('final ${field.type} ${field.name};');
       });
       gen.writeln();
@@ -302,9 +305,12 @@ class Request {
       domain.resultClasses[resultName] = results;
     }
 
-    if (!deprecated) gen.writeDocs(docs);
+    if (deprecated) {
+      gen.writeln('@deprecated');
+    } else {
+      gen.writeDocs(docs);
+    }
     if (experimental) gen.writeln('@experimental');
-    if (deprecated) gen.writeln('@deprecated');
 
     if (results.isEmpty) {
       if (args.isEmpty) {
@@ -426,8 +432,11 @@ class Notification {
     if (fields.isNotEmpty) {
       gen.writeln();
       fields.forEach((field) {
-        gen.writeDocs(field.docs);
-        if (field.deprecated) gen.write('@deprecated ');
+        if (field.deprecated) {
+          gen.write('@deprecated ');
+        } else {
+          gen.writeDocs(field.docs);
+        }
         if (field.optional) gen.write('@optional ');
         gen.writeln('final ${field.type} ${field.name};');
       });
@@ -475,8 +484,11 @@ class Field implements Comparable {
   }
 
   void generate(DartGenerator gen) {
-//    if (!deprecated) gen.writeDocs(docs);
-    if (deprecated) gen.writeln('@deprecated');
+    if (deprecated) {
+      gen.writeln('@deprecated');
+    } else {
+      gen.writeDocs(docs);
+    }
     if (optional) gen.write('@optional ');
     gen.writeStatement('final ${type} ${name};');
   }
@@ -627,9 +639,12 @@ class TypeDef {
     }
 
     gen.writeln();
-    if (!deprecated) gen.writeDocs(docs);
+    if (deprecated) {
+      gen.writeln('@deprecated');
+    } else {
+      gen.writeDocs(docs);
+    }
     if (experimental) gen.writeln('@experimental');
-    if (deprecated) gen.writeln('@deprecated');
     gen.write('class ${name}');
     if (isContentOverlay) gen.write(' extends ContentOverlayType');
     if (callParam) gen.write(' implements Jsonable');
@@ -651,8 +666,11 @@ class TypeDef {
     if (_fields.isNotEmpty) {
       gen.writeln();
       _fields.forEach((field) {
-        gen.writeDocs(field.docs);
-        if (field.deprecated) gen.write('@deprecated ');
+        if (field.deprecated) {
+          gen.write('@deprecated ');
+        } else {
+          gen.writeDocs(field.docs);
+        }
         if (field.optional) gen.write('@optional ');
         gen.writeln('final ${field.type} ${field.name};');
       });
@@ -865,7 +883,8 @@ class _ConcatTextVisitor extends TreeVisitor {
 final RegExp _wsRegexp = new RegExp(r'\s+', multiLine: true);
 
 String _collectDocs(Element element) {
-  String str = element.children.where((e) => e.localName == 'p').map((Element e) {
+  String str =
+      element.children.where((e) => e.localName == 'p').map((Element e) {
     _ConcatTextVisitor visitor = new _ConcatTextVisitor();
     visitor.visit(e);
     return visitor.toString().trim().replaceAll(_wsRegexp, ' ');
