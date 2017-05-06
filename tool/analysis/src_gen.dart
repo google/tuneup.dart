@@ -59,11 +59,8 @@ class DartGenerator {
 
   DartGenerator({this.colBoundary: DEFAULT_COLUMN_BOUNDARY});
 
-  /**
-   * Write out the given dartdoc text, wrapping lines as necessary to flow
-   * along the column boundary. If [preferSingle] is true, and the docs would
-   * fit on a single line, use `///` dartdoc style.
-   */
+  /// Write out the given dartdoc text, wrapping lines as necessary to flow
+  /// along the column boundary.
   void writeDocs(String docs) {
     if (docs == null) return;
 
@@ -72,15 +69,7 @@ class DartGenerator {
     // docs = docs.replaceAll('/*', r'/\*');
 
     docs.split('\n').forEach((line) => _writeln('/// ${line}'));
-
-    // if (!docs.contains('\n') && preferSingle) {
-    //   _writeln("/// ${docs}", true);
-    // } else {
-    //   _writeln("/**", true);
-    //   _writeln(" * ${docs.replaceAll("\n", "\n * ")}", true);
-    //   _writeln(" */", true);
-    // }
-  }
+}
 
   /**
    * Write out the given Dart statement and terminate it with an eol. If the

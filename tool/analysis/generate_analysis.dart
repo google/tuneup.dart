@@ -170,6 +170,7 @@ class Api {
 class Domain {
   bool experimental = false;
   String name;
+  String docs;
 
   List<Request> requests;
   List<Notification> notifications;
@@ -178,12 +179,15 @@ class Domain {
   Domain(Element element) {
     name = element.attributes['name'];
     experimental = element.attributes.containsKey('experimental');
-    requests = new List.from(element
+    docs = _collectDocs(element);
+    requests = element
         .getElementsByTagName('request')
-        .map((element) => new Request(this, element)));
-    notifications = new List.from(element
+        .map((element) => new Request(this, element))
+        .toList();
+    notifications = element
         .getElementsByTagName('notification')
-        .map((element) => new Notification(this, element)));
+        .map((element) => new Notification(this, element))
+        .toList();
   }
 
   String get className => '${titleCase(name)}Domain';
@@ -193,6 +197,7 @@ class Domain {
     gen.writeln();
     gen.writeln('// ${name} domain');
     gen.writeln();
+    gen.writeDocs(docs);
     if (experimental) gen.writeln('@experimental');
     gen.writeStatement('class ${className} extends Domain {');
     gen.writeStatement(
@@ -230,7 +235,9 @@ class Domain {
       gen.writeln(');');
       gen.writeln();
       fields.forEach((field) {
+        gen.writeDocs(field.docs);
         if (field.optional) gen.write('@optional ');
+        if (field.deprecated) gen.write('@deprecated ');
         gen.writeln('final ${field.type} ${field.name};');
       });
       gen.writeln();
@@ -255,14 +262,19 @@ class Domain {
 class Request {
   final Domain domain;
 
-  bool experimental = false;
+  bool experimental;
+  bool deprecated;
   String method;
+  String docs;
+
   List<Field> args = [];
   List<Field> results = [];
 
   Request(this.domain, Element element) {
     experimental = element.attributes.containsKey('experimental');
+    deprecated = element.attributes.containsKey('deprecated');
     method = element.attributes['method'];
+    docs = _collectDocs(element);
 
     List paramsList = element.getElementsByTagName('params');
     if (paramsList.isNotEmpty) {
@@ -287,7 +299,9 @@ class Request {
       domain.resultClasses[resultName] = results;
     }
 
+    if (!deprecated) gen.writeDocs(docs);
     if (experimental) gen.writeln('@experimental');
+    if (deprecated) gen.writeln('@deprecated');
 
     if (results.isEmpty) {
       if (args.isEmpty) {
@@ -368,10 +382,12 @@ class Request {
 class Notification {
   final Domain domain;
   String event;
+  String docs;
   List<Field> fields;
 
   Notification(this.domain, Element element) {
     event = element.attributes['event'];
+    docs = _collectDocs(element);
     fields = new List.from(
         element.getElementsByTagName('field').map((field) => new Field(field)));
     fields.sort();
@@ -384,6 +400,7 @@ class Notification {
   String get className => '${titleCase(domain.name)}${titleCase(event)}';
 
   void generate(DartGenerator gen) {
+    gen.writeDocs(docs);
     gen.writeln("Stream<${className}> get ${onName} {");
     gen.writeln("return _listen('${title}', ${className}.parse);");
     gen.writeln("}");
@@ -406,6 +423,8 @@ class Notification {
     if (fields.isNotEmpty) {
       gen.writeln();
       fields.forEach((field) {
+        gen.writeDocs(field.docs);
+        if (field.deprecated) gen.write('@deprecated ');
         if (field.optional) gen.write('@optional ');
         gen.writeln('final ${field.type} ${field.name};');
       });
@@ -428,12 +447,16 @@ class Notification {
 
 class Field implements Comparable {
   String name;
+  String docs;
   bool optional;
+  bool deprecated;
   Type type;
 
   Field(Element element) {
     name = element.attributes['name'];
+    docs = _collectDocs(element);
     optional = element.attributes['optional'] == 'true';
+    deprecated = element.attributes.containsKey('deprecated');
     type = Type.create(element.children.first);
   }
 
@@ -449,6 +472,8 @@ class Field implements Comparable {
   }
 
   void generate(DartGenerator gen) {
+    gen.writeDocs(docs);
+    if (deprecated) gen.writeln('@deprecated');
     if (optional) gen.write('@optional ');
     gen.writeStatement('final ${type} ${name};');
   }
@@ -456,11 +481,13 @@ class Field implements Comparable {
 
 class Refactoring {
   String kind;
+  String docs;
   List<Field> optionsFields = [];
   List<Field> feedbackFields = [];
 
   Refactoring(Element element) {
     kind = element.attributes['kind'];
+    docs = _collectDocs(element);
 
     // Parse <options>
     // <field name="deleteSource"><ref>bool</ref></field>
@@ -490,6 +517,7 @@ class Refactoring {
     // Generate the refactoring options.
     if (optionsFields.isNotEmpty) {
       gen.writeln();
+      gen.writeDocs(docs);
       gen.writeStatement(
           'class ${className}RefactoringOptions extends RefactoringOptions {');
       // fields
@@ -534,7 +562,9 @@ class TypeDef {
       new Set.from(['Location', 'AnalysisError']);
 
   String name;
-  bool experimental = false;
+  bool experimental;
+  bool deprecated;
+  String docs;
   bool isString = false;
   List<Field> fields;
   bool _callParam = false;
@@ -542,6 +572,8 @@ class TypeDef {
   TypeDef(Element element) {
     name = element.attributes['name'];
     experimental = element.attributes.containsKey('experimental');
+    deprecated = element.attributes.containsKey('deprecated');
+    docs = _collectDocs(element);
 
     // object, enum, ref
     Set<String> tags = new Set.from(element.children.map((c) => c.localName));
@@ -592,7 +624,9 @@ class TypeDef {
     }
 
     gen.writeln();
+    if (!deprecated) gen.writeDocs(docs);
     if (experimental) gen.writeln('@experimental');
+    if (deprecated) gen.writeln('@deprecated');
     gen.write('class ${name}');
     if (isContentOverlay) gen.write(' extends ContentOverlayType');
     if (callParam) gen.write(' implements Jsonable');
@@ -614,6 +648,8 @@ class TypeDef {
     if (_fields.isNotEmpty) {
       gen.writeln();
       _fields.forEach((field) {
+        gen.writeDocs(field.docs);
+        if (field.deprecated) gen.write('@deprecated ');
         if (field.optional) gen.write('@optional ');
         gen.writeln('final ${field.type} ${field.name};');
       });
@@ -799,6 +835,16 @@ class PrimitiveType extends Type {
   String jsonConvert(String ref) => ref;
 
   void setCallParam() {}
+}
+
+final RegExp wsRegexp = new RegExp(r'\s+', multiLine: true);
+
+String _collectDocs(Element element) {
+  String str = element.children.where((e) => e.localName == 'p').map((Element e) {
+    // TODO: handle <b> and <tt>
+    return e.text.trim().replaceAll(wsRegexp, ' ');
+  }).join('\n\n');
+  return str.isEmpty ? null : str;
 }
 
 final String _headerCode = r'''
