@@ -6,6 +6,7 @@ import 'dart:collection' show LinkedHashMap;
 import 'dart:io';
 
 import 'package:html/dom.dart';
+import 'package:html/dom_parsing.dart' show TreeVisitor;
 import 'package:html/parser.dart' show parse;
 
 import 'src_gen.dart';
@@ -31,7 +32,7 @@ main(List<String> args) {
   api.parse(domains, typedefs, refactorings);
 
   // Generate code from the model.
-  File outputFile = new File('lib/src/analysis_server_lib.dart');
+  File outputFile = new File('lib/src/analysis_server.dart');
   DartGenerator generator = new DartGenerator();
   api.generate(generator);
   outputFile.writeAsStringSync(generator.toString());
@@ -74,7 +75,8 @@ class Api {
     gen.writeln();
     gen.writeln("typedef void MethodSend(String methodName);");
     gen.writeln();
-    gen.writeStatement('class Server {');
+    gen.writeDocs('A class to communicate with an analysis server instance.');
+    gen.writeStatement('class AnalysisServer {');
     gen.writeln(_staticFactory);
     gen.writeStatement('final Completer<int> processCompleter;');
     gen.writeStatement('final Function _processKillHandler;');
@@ -96,8 +98,9 @@ class Api {
     domains.forEach(
         (Domain domain) => gen.writeln('${domain.className} _${domain.name};'));
     gen.writeln();
+    gen.writeDocs('Connect to an existing analysis server instance.');
     gen.writeStatement(
-        'Server(Stream<String> inStream, void writeMessage(String message), \n'
+        'AnalysisServer(Stream<String> inStream, void writeMessage(String message), \n'
         'this.processCompleter, [this._processKillHandler]) {');
     gen.writeStatement('configure(inStream, writeMessage);');
     gen.writeln();
@@ -201,7 +204,7 @@ class Domain {
     if (experimental) gen.writeln('@experimental');
     gen.writeStatement('class ${className} extends Domain {');
     gen.writeStatement(
-        "${className}(Server server) : super(server, '${name}');");
+        "${className}(AnalysisServer server) : super(server, '${name}');");
     if (notifications.isNotEmpty) {
       gen.writeln();
       notifications
@@ -837,12 +840,36 @@ class PrimitiveType extends Type {
   void setCallParam() {}
 }
 
-final RegExp wsRegexp = new RegExp(r'\s+', multiLine: true);
+class _ConcatTextVisitor extends TreeVisitor {
+  final StringBuffer buffer = new StringBuffer();
+
+  String toString() => buffer.toString();
+
+  visitText(Text node) {
+    buffer.write(node.data);
+  }
+
+  visitElement(Element node) {
+    if (node.localName == 'b') {
+      buffer.write('__${node.text}__');
+    } else if (node.localName == 'a') {
+      buffer.write('(${node.text})[${node.attributes['href']}]');
+    } else if (node.localName == 'tt') {
+      buffer.write('`${node.text}`');
+    } else {
+      visitChildren(node);
+    }
+  }
+}
+
+final RegExp _wsRegexp = new RegExp(r'\s+', multiLine: true);
 
 String _collectDocs(Element element) {
   String str = element.children.where((e) => e.localName == 'p').map((Element e) {
     // TODO: handle <b> and <tt>
-    return e.text.trim().replaceAll(wsRegexp, ' ');
+    _ConcatTextVisitor visitor = new _ConcatTextVisitor();
+    String text = e.text; //visitor.visit(e).toString();
+    return text.trim().replaceAll(_wsRegexp, ' ');
   }).join('\n\n');
   return str.isEmpty ? null : str;
 }
@@ -855,7 +882,7 @@ final String _headerCode = r'''
 // This is a generated file.
 
 /// A library to access the analysis server API.
-library analysis_server_lib;
+library analysis_server;
 
 import 'dart:async';
 import 'dart:convert';
@@ -870,19 +897,27 @@ const String optional = 'optional';
 /// @experimental
 const String experimental = 'experimental';
 
-final Logger _logger = new Logger('analysis_server_lib');
+final Logger _logger = new Logger('analysis_server');
 
 ''';
 
 final String _staticFactory = r'''
-  static Future<Server> createFromDefaults(
-      {onRead(String), onWrite(String)}) async {
+  /// Create and connect to a new analysis server instance.
+  ///
+  /// - [sdkPath] override the default sdk path
+  /// - [scriptPath] override the default entry-point script to use for the
+  ///     analysis server
+  /// - [onRead] called every time data is read from the server
+  /// - [onWrite] called every time data is written to the server
+  static Future<AnalysisServer> create(
+      {String sdkPath, String scriptPath, onRead(String), onWrite(String)}) async {
     Completer<int> processCompleter = new Completer();
-    String sdk = path.dirname(path.dirname(Platform.resolvedExecutable));
-    String snapshot = '${sdk}/bin/snapshots/analysis_server.dart.snapshot';
+
+    sdkPath ??= path.dirname(path.dirname(Platform.resolvedExecutable));
+    scriptPath ??= '$sdkPath/bin/snapshots/analysis_server.dart.snapshot';
 
     Process process = await Process
-        .start(Platform.resolvedExecutable, [snapshot, '--sdk', sdk]);
+        .start(Platform.resolvedExecutable, [scriptPath, '--sdk', sdkPath]);
     process.exitCode.then((code) => processCompleter.complete(code));
 
     Stream<String> inStream = process.stdout
@@ -893,7 +928,7 @@ final String _staticFactory = r'''
       return message;
     });
 
-    Server server = new Server(inStream, (String message) {
+    AnalysisServer server = new AnalysisServer(inStream, (String message) {
       if (onWrite != null) onWrite(message);
       process.stdin.writeln(message);
     }, processCompleter, process.kill);
@@ -985,7 +1020,7 @@ final String _serverCode = r'''
 
 final String _domainCode = r'''
 abstract class Domain {
-  final Server server;
+  final AnalysisServer server;
   final String name;
 
   Map<String, StreamController> _controllers = {};

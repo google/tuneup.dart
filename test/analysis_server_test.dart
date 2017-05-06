@@ -2,7 +2,7 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-import 'package:tuneup/src/analysis_server_lib.dart';
+import 'package:tuneup/src/analysis_server.dart';
 import 'package:unittest/unittest.dart';
 
 void main() => defineTests();
@@ -10,10 +10,10 @@ void main() => defineTests();
 void defineTests() {
   group('analysis server', () {
     test('responds to version', () async {
-      Server client;
+      AnalysisServer client;
 
       try {
-        client = await Server.createFromDefaults();
+        client = await AnalysisServer.create();
         await client.server.onConnected.first;
 
         VersionResult result = await client.server.getVersion();

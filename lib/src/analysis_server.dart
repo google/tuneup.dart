@@ -5,7 +5,7 @@
 // This is a generated file.
 
 /// A library to access the analysis server API.
-library analysis_server_lib;
+library analysis_server;
 
 import 'dart:async';
 import 'dart:convert';
@@ -20,21 +20,33 @@ const String optional = 'optional';
 /// @experimental
 const String experimental = 'experimental';
 
-final Logger _logger = new Logger('analysis_server_lib');
+final Logger _logger = new Logger('analysis_server');
 
 const String generatedProtocolVersion = '1.18.1';
 
 typedef void MethodSend(String methodName);
 
-class Server {
-  static Future<Server> createFromDefaults(
-      {onRead(String), onWrite(String)}) async {
+/// A class to communicate with an analysis server instance.
+class AnalysisServer {
+  /// Create and connect to a new analysis server instance.
+  ///
+  /// - [sdkPath] override the default sdk path
+  /// - [scriptPath] override the default entry-point script to use for the
+  ///     analysis server
+  /// - [onRead] called every time data is read from the server
+  /// - [onWrite] called every time data is written to the server
+  static Future<AnalysisServer> create(
+      {String sdkPath,
+      String scriptPath,
+      onRead(String),
+      onWrite(String)}) async {
     Completer<int> processCompleter = new Completer();
-    String sdk = path.dirname(path.dirname(Platform.resolvedExecutable));
-    String snapshot = '${sdk}/bin/snapshots/analysis_server.dart.snapshot';
+
+    sdkPath ??= path.dirname(path.dirname(Platform.resolvedExecutable));
+    scriptPath ??= '$sdkPath/bin/snapshots/analysis_server.dart.snapshot';
 
     Process process = await Process
-        .start(Platform.resolvedExecutable, [snapshot, '--sdk', sdk]);
+        .start(Platform.resolvedExecutable, [scriptPath, '--sdk', sdkPath]);
     process.exitCode.then((code) => processCompleter.complete(code));
 
     Stream<String> inStream = process.stdout
@@ -45,7 +57,7 @@ class Server {
       return message;
     });
 
-    Server server = new Server(inStream, (String message) {
+    AnalysisServer server = new AnalysisServer(inStream, (String message) {
       if (onWrite != null) onWrite(message);
       process.stdin.writeln(message);
     }, processCompleter, process.kill);
@@ -75,7 +87,8 @@ class Server {
   ExecutionDomain _execution;
   DiagnosticDomain _diagnostic;
 
-  Server(Stream<String> inStream, void writeMessage(String message),
+  /// Connect to an existing analysis server instance.
+  AnalysisServer(Stream<String> inStream, void writeMessage(String message),
       this.processCompleter,
       [this._processKillHandler]) {
     configure(inStream, writeMessage);
@@ -178,7 +191,7 @@ class Server {
 }
 
 abstract class Domain {
-  final Server server;
+  final AnalysisServer server;
   final String name;
 
   Map<String, StreamController> _controllers = {};
@@ -254,7 +267,7 @@ Map _stripNullValues(Map m) {
 
 /// The server domain contains API’s related to the execution of the server.
 class ServerDomain extends Domain {
-  ServerDomain(Server server) : super(server, 'server');
+  ServerDomain(AnalysisServer server) : super(server, 'server');
 
   /// Reports that the server is running. This notification is issued once after
   /// the server has started running but before any requests are processed to
@@ -373,7 +386,7 @@ class VersionResult {
 
 /// The analysis domain contains API’s related to the analysis of files.
 class AnalysisDomain extends Domain {
-  AnalysisDomain(Server server) : super(server, 'analysis');
+  AnalysisDomain(AnalysisServer server) : super(server, 'analysis');
 
   /// Reports the paths of the files that are being analyzed.
   ///
@@ -978,7 +991,7 @@ class NavigationResult {
 /// The code completion domain contains commands related to getting code
 /// completion suggestions.
 class CompletionDomain extends Domain {
-  CompletionDomain(Server server) : super(server, 'completion');
+  CompletionDomain(AnalysisServer server) : super(server, 'completion');
 
   /// Reports the completion suggestions that should be presented to the user.
   /// The set of suggestions included in the notification is always a complete
@@ -1049,7 +1062,7 @@ class SuggestionsResult {
 /// The search domain contains commands related to searches that can be
 /// performed against the code base.
 class SearchDomain extends Domain {
-  SearchDomain(Server server) : super(server, 'search');
+  SearchDomain(AnalysisServer server) : super(server, 'search');
 
   /// Reports some or all of the results of performing a requested search.
   /// Unlike other notifications, this notification contains search results that
@@ -1222,7 +1235,7 @@ class TypeHierarchyResult {
 /// The edit domain contains commands related to edits that can be applied to
 /// the code.
 class EditDomain extends Domain {
-  EditDomain(Server server) : super(server, 'edit');
+  EditDomain(AnalysisServer server) : super(server, 'edit');
 
   /// Format the contents of a single file. The currently selected region of
   /// text is passed in so that the selection can be preserved across the
@@ -1495,7 +1508,7 @@ class OrganizeDirectivesResult {
 /// The execution domain contains commands related to providing an execution or
 /// debugging experience.
 class ExecutionDomain extends Domain {
-  ExecutionDomain(Server server) : super(server, 'execution');
+  ExecutionDomain(AnalysisServer server) : super(server, 'execution');
 
   /// Reports information needed to allow a single file to be launched.
   ///
@@ -1606,7 +1619,7 @@ class MapUriResult {
 
 /// The diagnostic domain contains server diagnostics APIs.
 class DiagnosticDomain extends Domain {
-  DiagnosticDomain(Server server) : super(server, 'diagnostic');
+  DiagnosticDomain(AnalysisServer server) : super(server, 'diagnostic');
 
   /// Return server diagnostics.
   Future<DiagnosticsResult> getDiagnostics() =>
@@ -1729,7 +1742,7 @@ class AnalysisError {
       '[AnalysisError severity: ${severity}, type: ${type}, location: ${location}, message: ${message}, code: ${code}]';
 }
 
-/// A list of fixes associated with a specific error.
+/// A list of fixes associated with a specific error
 class AnalysisErrorFixes {
   static AnalysisErrorFixes parse(Map m) {
     if (m == null) return null;

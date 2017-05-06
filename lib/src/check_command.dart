@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
-import 'analysis_server_lib.dart';
+import 'analysis_server.dart';
 import 'ansi.dart';
 import 'common.dart';
 import 'logger.dart';
@@ -22,7 +22,7 @@ class CheckCommand extends Command {
     Stopwatch stopwatch = new Stopwatch()..start();
 
     // init
-    Server client = await Server.createFromDefaults(onRead: (String msg) {
+    AnalysisServer client = await AnalysisServer.create(onRead: (String msg) {
       const int max = 140;
       String s = msg.length > max ? '${msg.substring(0, max)}...' : msg;
       project.trace('<-- $s');

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:tuneup/src/analysis_server_lib.dart';
+import 'package:tuneup/src/analysis_server.dart';
 
 Future main(List<String> args) async {
   if (args.contains('--mini')) {
@@ -17,7 +17,7 @@ Future main(List<String> args) async {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen(print);
 
-  Server client = await Server.createFromDefaults(onRead: (String message) {
+  AnalysisServer client = await AnalysisServer.create(onRead: (String message) {
     print('[<-- $message]');
   }, onWrite: (String message) {
     print('[--> $message]');
@@ -56,7 +56,7 @@ Future main(List<String> args) async {
 }
 
 Future _miniTest() async {
-  Server client = await Server.createFromDefaults(
+  AnalysisServer client = await AnalysisServer.create(
     onRead: print,
     onWrite: print,
   );
