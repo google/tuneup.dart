@@ -35,18 +35,23 @@ class AnalysisServer {
   ///     analysis server
   /// - [onRead] called every time data is read from the server
   /// - [onWrite] called every time data is written to the server
-  static Future<AnalysisServer> create(
-      {String sdkPath,
-      String scriptPath,
-      onRead(String),
-      onWrite(String)}) async {
+  static Future<AnalysisServer> create({
+    String sdkPath,
+    String scriptPath,
+    onRead(String),
+    onWrite(String),
+    List<String> vmArgs,
+    List<String> serverArgs,
+  }) async {
     Completer<int> processCompleter = new Completer();
 
     sdkPath ??= path.dirname(path.dirname(Platform.resolvedExecutable));
     scriptPath ??= '$sdkPath/bin/snapshots/analysis_server.dart.snapshot';
 
-    Process process = await Process
-        .start(Platform.resolvedExecutable, [scriptPath, '--sdk', sdkPath]);
+    List<String> args = [scriptPath, '--sdk', sdkPath];
+    if (vmArgs != null) args.insertAll(0, vmArgs);
+    if (serverArgs != null) args.addAll(serverArgs);
+    Process process = await Process.start(Platform.resolvedExecutable, args);
     process.exitCode.then((code) => processCompleter.complete(code));
 
     Stream<String> inStream = process.stdout
