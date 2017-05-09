@@ -20,7 +20,7 @@ dependencies:
 
 dev_dependencies:
   html: ^0.13.0
-  unittest: ^0.11.0
+  test: ^0.12.0
 
 # Add the bin/tuneup.dart script to the scripts pub installs.
 executables:

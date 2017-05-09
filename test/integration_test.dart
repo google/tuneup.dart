@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:test/test.dart';
 import 'package:tuneup/src/common.dart';
 import 'package:tuneup/src/logger.dart';
 import 'package:tuneup/tuneup.dart';
-import 'package:unittest/unittest.dart';
 
 void main() => defineTests();
 

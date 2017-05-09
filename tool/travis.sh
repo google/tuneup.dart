@@ -11,4 +11,4 @@ set -e
 dart -c bin/tuneup.dart check --no-color
 
 # Run the tests.
-dart -c test/all.dart
+pub run test

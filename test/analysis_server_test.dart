@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 import 'package:tuneup/src/analysis_server.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 void main() => defineTests();
 
