@@ -69,7 +69,7 @@ class DartGenerator {
     // docs = docs.replaceAll('/*', r'/\*');
 
     docs.split('\n').forEach((line) => _writeln('/// ${line}'));
-}
+  }
 
   /**
    * Write out the given Dart statement and terminate it with an eol. If the

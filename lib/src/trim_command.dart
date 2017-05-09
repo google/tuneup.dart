@@ -6,9 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../tuneup.dart';
 import 'common.dart';
 
-class TrimCommand extends Command {
+class TrimCommand extends TuneupCommand {
   final List<FileHandler> _handlers = [
     new CssFileHandler(),
     new DartFileHandler(),
@@ -18,7 +19,8 @@ class TrimCommand extends Command {
     new YamlFileHandler()
   ];
 
-  TrimCommand() : super('trim', 'trim unwanted whitespace from your source');
+  TrimCommand(Tuneup tuneup)
+      : super(tuneup, 'trim', 'trim unwanted whitespace from your source');
 
   Future execute(Project project, [args]) {
     List<String> ext = new List.from(_handlers.expand((h) => h.types));

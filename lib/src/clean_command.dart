@@ -7,13 +7,15 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import '../tuneup.dart';
 import 'common.dart';
 
-class CleanCommand extends Command {
-  CleanCommand()
-      : super('clean', 'clean the project - remove the build/ directory');
+class CleanCommand extends TuneupCommand {
+  CleanCommand(Tuneup tuneup)
+      : super(
+            tuneup, 'clean', 'clean the project - remove the build/ directory');
 
-  Future execute(Project project, [args]) {
+  Future execute(Project project) {
     Directory buildDir = new Directory(path.join(project.dir.path, 'build'));
 
     if (buildDir.existsSync()) {

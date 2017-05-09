@@ -7,15 +7,17 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import '../tuneup.dart';
 import 'common.dart';
 
-class InitCommand extends Command {
-  InitCommand() : super('init', 'create a new project');
+class InitCommand extends TuneupCommand {
+  InitCommand(Tuneup tuneup) : super(tuneup, 'init', 'create a new project') {
+    argParser.addFlag('override',
+        negatable: false, help: 'Force generation of the sample project.');
+  }
 
-  Future execute(Project project, [args]) {
-    if (args == null) args = {};
-
-    if (!args['override'] && !_isDirEmpty(project.dir)) {
+  Future execute(Project project) {
+    if (!argResults['override'] && !_isDirEmpty(project.dir)) {
       return new Future.error('The current directory is not empty. Please '
           'create a new project directory, or use --override to force '
           'generation into the current directory.');

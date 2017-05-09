@@ -11,8 +11,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:intl/intl_standalone.dart' as intl;
-import 'package:path/path.dart' as path;
+import 'package:args/command_runner.dart';
 
 import 'src/ansi.dart';
 import 'src/check_command.dart';
@@ -27,182 +26,71 @@ import 'src/trim_command.dart';
 const String appVersion = '0.3.0';
 const String appName = 'tuneup';
 
-// TODO(devoncarew): fix our use of subcommands
-
-class Tuneup {
+class Tuneup extends CommandRunner {
   Logger logger;
   Ansi ansi;
-  final Map<String, Command> _commands = {};
+  Project project;
 
-  Tuneup({this.logger}) {
+  Tuneup({this.logger})
+      : super(
+            appName, 'A tool to improve visibility into your Dart projects.') {
     ansi = new Ansi(terminalSupportsAnsi());
 
-    _addCommand(new InitCommand());
-    _addCommand(new CheckCommand());
-    _addCommand(new StatsCommand());
-    _addCommand(new TrimCommand());
-    _addCommand(new CleanCommand());
+    argParser.addFlag('version',
+        negatable: false, help: 'Display the application version.');
+    argParser.addOption('dart-sdk', hide: true, help: 'the path to the sdk');
+    argParser.addOption('directory', help: 'The project directory to analyze.');
+    argParser.addFlag('verbose',
+        negatable: false,
+        abbr: 'v',
+        help: 'Display verbose diagnostic output.');
+    argParser.addFlag('color',
+        help: 'Use ansi colors when printing messages.',
+        defaultsTo: terminalSupportsAnsi());
+
+    addCommand(new InitCommand(this));
+    addCommand(new CheckCommand(this));
+    addCommand(new StatsCommand(this));
+    addCommand(new TrimCommand(this));
+    addCommand(new CleanCommand(this));
   }
 
-  void _addCommand(Command command) {
-    _commands[command.name] = command;
-  }
+  Future run(Iterable<String> args, {Directory directory}) async {
+    ArgResults results = args.isEmpty ? parse(['check']) : parse(args);
 
-  Future processArgs(List<String> args, {Directory directory}) async {
-    await intl.findSystemLocale();
-
-    return _processArgs(args, directory: directory).whenComplete(() {
-      logger.flush();
-    });
-  }
-
-  Future _processArgs(List<String> args, {Directory directory}) {
-    if (directory == null) directory = Directory.current;
-
-    ArgParser argParser = _createArgParser();
-    ArgResults options;
-
-    try {
-      options = argParser.parse(args);
-    } catch (e, st) {
-      // FormatException: Could not find an option named "foo".
-      if (e is FormatException) {
-        _out('Error: ${e.message}');
-        return new Future.error(new ArgError(e.message));
-      } else {
-        return new Future.error(e, st);
-      }
+    if (results.wasParsed('color')) {
+      ansi = new Ansi(results['color']);
     }
 
-    if (options.wasParsed('color')) {
-      ansi = new Ansi(options['color']);
-    }
+    logger ??= new StandardLogger(ansi);
 
-    if (logger == null) {
-      logger = new StandardLogger(ansi);
-    }
-
-    if (options.command == null && options.rest.isNotEmpty) {
-      var message = 'Could not find an command named "${options.rest.first}".';
-      _out('Error: ${message}');
-      return new Future.error(new ArgError(message));
-    }
-
-    if (options['version']) {
+    if (results['version']) {
       _out('${appName} version ${appVersion}');
       return new Future.value();
     }
 
-    if (options['help']) {
-      _usage(argParser);
-      return new Future.value();
-    }
-
-    if (options['directory'] != null) {
-      Directory dir = new Directory(options['directory']);
+    if (results['directory'] != null) {
+      Directory dir = new Directory(results['directory']);
       if (!dir.existsSync()) {
-        var message = 'Directory specified does not exist "${directory.path}".';
+        String message = 'Directory specified does not exist "${dir.path}".';
         _out('Error: ${message}');
-        return new Future.error(new ArgError(message));
+        throw new UsageException(message, usage);
       }
       directory = dir;
     }
 
-    if (options['verbose']) {
+    directory ??= Directory.current;
+
+    if (results['verbose']) {
       logger = new VerboseLogger(ansi);
     }
 
-    Project project = new Project(directory, logger, ansi);
-    File pubspec = new File(path.join(directory.path, 'pubspec.yaml'));
+    project = new Project(directory, logger, ansi);
 
-    Command command;
-
-    if (options.command == null) {
-      // No command specified; run 'check'.
-      _out("Running the 'check' command (run with --help for a list of "
-          "available commands).");
-      command = _commands['check'];
-    } else {
-      command = _commands[options.command.name];
-    }
-
-    // TODO(devoncarew): Do we still want this pubspec check?
-    // Verify that we are being run from a project directory.
-    if (command.name != 'init' && !pubspec.existsSync()) {
-      String message =
-          'No pubspec.yaml file found. The tuneup command should be run from '
-          'the root of a project.';
-      _out(message);
-      return new Future.error(new ArgError(message));
-    }
-
-    return command.execute(project, options.command);
-  }
-
-  ArgParser _createArgParser() {
-    ArgParser parser = new ArgParser();
-
-    parser.addFlag('help', abbr: 'h', negatable: false, help: 'Help!');
-    parser.addFlag('version',
-        negatable: false, help: 'Display the application version.');
-    parser.addOption('dart-sdk', hide: true, help: 'the path to the sdk');
-    parser.addOption('directory', help: 'The project directory to analyze.');
-    parser.addFlag('verbose',
-        negatable: false,
-        abbr: 'v',
-        help: 'Display verbose diagnostic output.');
-    parser.addFlag('color',
-        help: 'Use asni colors when printing messages.',
-        defaultsTo: terminalSupportsAnsi());
-
-    // init
-    ArgParser commandParser = parser.addCommand('init');
-    commandParser.addFlag('override',
-        negatable: false, help: 'Force generation of the sample project.');
-
-    // check
-    commandParser = parser.addCommand('check');
-    commandParser.addFlag('ignore-infos',
-        negatable: false, help: 'Ignore any info level issues.');
-
-    // stats
-    parser.addCommand('stats');
-
-    // trim
-    parser.addCommand('trim');
-
-    // clean
-    parser.addCommand('clean');
-
-    return parser;
-  }
-
-  void _usage(ArgParser argParser) {
-    final String indent = '        ';
-
-    _out('usage: ${appName} <command>');
-    _out('A tool to improve visibility into your Dart projects.');
-    _out('');
-    _out('options:');
-    _out(argParser.usage);
-    _out('');
-    _out('commands:');
-    _commands.forEach((name, command) {
-      _out('  ${name}: ${command.description}');
-      String usage = argParser.commands[name].usage;
-      if (usage.isNotEmpty) {
-        _out(indent + usage.split('\n').join(indent));
-      }
-    });
+    return runCommand(results);
   }
 
   void _out(String str) {
     logger == null ? print(str) : logger.stdout(str);
   }
-}
-
-class ArgError implements Exception {
-  final String message;
-  ArgError(this.message);
-  String toString() => message;
 }
