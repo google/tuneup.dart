@@ -11,23 +11,28 @@ import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
+import 'package:args/command_runner.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:quiver/pattern.dart' show Glob;
 import 'package:yaml/yaml.dart' as yaml;
 
+import '../tuneup.dart';
 import 'ansi.dart';
 import 'logger.dart';
 
 final String pathSep = Platform.isWindows ? r'\' : '/';
 
-abstract class Command {
+abstract class TuneupCommand extends Command {
+  final Tuneup tuneup;
   final String name;
   final String description;
 
-  Command(this.name, this.description);
+  TuneupCommand(this.tuneup, this.name, this.description);
 
-  Future execute(Project project, [args]);
+  Future run() => execute(tuneup.project);
+
+  Future execute(Project project);
 }
 
 class Project {

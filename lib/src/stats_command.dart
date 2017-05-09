@@ -7,13 +7,15 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import '../tuneup.dart';
 import 'common.dart';
 
-class StatsCommand extends Command {
-  StatsCommand()
-      : super('stats', 'display metadata and statistics about the project');
+class StatsCommand extends TuneupCommand {
+  StatsCommand(Tuneup tuneup)
+      : super(tuneup, 'stats',
+            'display metadata and statistics about the project');
 
-  Future execute(Project project, [args]) {
+  Future execute(Project project) {
     Map pubspec = project.pubspec;
 
     String version = pubspec.containsKey('version') ? pubspec['version'] : '-';

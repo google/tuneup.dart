@@ -7,13 +7,18 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
+import '../tuneup.dart';
 import 'analysis_server.dart';
 import 'ansi.dart';
 import 'common.dart';
 import 'logger.dart';
 
-class CheckCommand extends Command {
-  CheckCommand() : super('check', 'analyze all the source code in the project');
+class CheckCommand extends TuneupCommand {
+  CheckCommand(Tuneup tuneup)
+      : super(tuneup, 'check', 'analyze all the source code in the project') {
+    argParser.addFlag('ignore-infos',
+        negatable: false, help: 'Ignore any info level issues.');
+  }
 
   Future execute(Project project, [args]) async {
     Progress progress =

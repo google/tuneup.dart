@@ -2,8 +2,10 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
 import 'package:tuneup/src/common.dart';
 import 'package:tuneup/src/logger.dart';
 import 'package:tuneup/tuneup.dart';
@@ -30,11 +32,11 @@ void defineTests() {
 
     test('no args', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['init'], directory: foo).then((_) {
+      return tuneup.run(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
         _setupPub();
-        return tuneup.processArgs(['check'], directory: foo);
+        return tuneup.run(['check'], directory: foo);
       }).then((_) {
         expect(
             logger.out, contains('No issues found; analyzed 1 source file in'));
@@ -44,36 +46,42 @@ void defineTests() {
 
     test('bad command', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['foo_command'], directory: foo).then((_) {
+      return tuneup.run(['foo_command'], directory: foo).then((_) {
         fail('expected exception');
       }).catchError((e) {
-        expect(logger.out, contains('Could not find an command named'));
+        expect(e is UsageException, true);
+        expect(e.toString(), contains('Could not find a command named'));
       });
     });
 
     test('bad arg', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['--foo', 'bar'], directory: foo).then((_) {
+      return tuneup.run(['--foo', 'bar'], directory: foo).then((_) {
         fail('should have thrown');
       }).catchError((e) {
-        expect(e is ArgError, true);
+        expect(e is UsageException, true);
         expect(e.message, contains('Could not find an option named'));
       });
     });
 
-    test('--help', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['--help'], directory: foo).then((_) {
-        expect(logger.out,
-            contains('A tool to improve visibility into your Dart projects.'));
-        expect(logger.out, contains('commands:'));
-        expect(logger.err, isEmpty);
-      });
+    test('--help', () async {
+      final StringBuffer buf = new StringBuffer();
+
+      printHandler(Zone self, ZoneDelegate parent, Zone zone, String line) {
+        buf.writeln(line);
+      }
+
+      await runZoned(() async {
+        Tuneup tuneup = new Tuneup();
+        await tuneup.run(['--help'], directory: foo);
+      }, zoneSpecification: new ZoneSpecification(print: printHandler));
+      expect(buf.toString(),
+          contains('A tool to improve visibility into your Dart projects.'));
     });
 
     test('--version', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['--version'], directory: foo).then((_) {
+      return tuneup.run(['--version'], directory: foo).then((_) {
         expect(logger.out, contains('tuneup version '));
         expect(logger.err, isEmpty);
       });
@@ -81,20 +89,20 @@ void defineTests() {
 
     test('init', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['init'], directory: foo).then((_) {
+      return tuneup.run(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       });
     });
 
     test('stats', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['init'], directory: foo).then((_) {
+      return tuneup.run(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
         File other = new File('foo/web/index.html');
         other.parent.createSync(recursive: true);
         other.writeAsStringSync('<body>\n  hey!\n</body>\n');
       }).then((_) {
-        return tuneup.processArgs(['stats'], directory: foo).then((_) {
+        return tuneup.run(['stats'], directory: foo).then((_) {
           expect(logger.out, contains('2 source files and 6 lines of code'));
           expect(logger.err, isEmpty);
         });
@@ -106,11 +114,11 @@ void defineTests() {
       File hello = new File('foo/bin/helloworld.dart');
       File other = new File('foo/web/index.html');
 
-      return tuneup.processArgs(['init'], directory: foo).then((_) {
+      return tuneup.run(['init'], directory: foo).then((_) {
         other.parent.createSync(recursive: true);
         other.writeAsStringSync('<body>\n  hey!\n\n\nfoo \n</body>\n\n\n');
       }).then((_) {
-        return tuneup.processArgs(['trim'], directory: foo).then((_) {
+        return tuneup.run(['trim'], directory: foo).then((_) {
           expect(hello.readAsStringSync(),
               "void main() {\n  print('hello world!');\n}\n");
           expect(other.readAsStringSync(), '<body>\n  hey!\n\nfoo\n</body>\n');
@@ -120,11 +128,11 @@ void defineTests() {
 
     test('check', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['init'], directory: foo).then((_) {
+      return tuneup.run(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
         _setupPub();
-        return tuneup.processArgs(['check'], directory: foo);
+        return tuneup.run(['check'], directory: foo);
       }).then((_) {
         expect(
             logger.out, contains('No issues found; analyzed 1 source file in'));
@@ -134,13 +142,13 @@ void defineTests() {
 
     test('check with errors', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['init'], directory: foo).then((_) {
+      return tuneup.run(['init'], directory: foo).then((_) {
         File f = new File('foo/bin/helloworld.dart');
         expect(f.existsSync(), true);
         f.writeAsStringSync(_errorText);
       }).then((_) {
         _setupPub();
-        return tuneup.processArgs(['check'], directory: foo);
+        return tuneup.run(['check'], directory: foo);
       }).then((_) {
         fail('expected analysis errors');
       }).catchError((e) {
@@ -153,11 +161,11 @@ void defineTests() {
 
     test('clean', () {
       Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.processArgs(['init'], directory: foo).then((_) {
+      return tuneup.run(['init'], directory: foo).then((_) {
         expect(new File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
         new Directory('foo/build').createSync();
-        return tuneup.processArgs(['clean'], directory: foo);
+        return tuneup.run(['clean'], directory: foo);
       }).then((_) {
         expect(logger.out, contains('Deleting build'));
         expect(logger.err, isEmpty);
