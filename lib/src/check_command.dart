@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import '../tuneup.dart';
-import 'analysis_server.dart';
 import 'ansi.dart';
 import 'common.dart';
 import 'logger.dart';
