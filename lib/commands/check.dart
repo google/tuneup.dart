@@ -8,10 +8,10 @@ import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
+import '../src/ansi.dart';
+import '../src/common.dart';
+import '../src/logger.dart';
 import '../tuneup.dart';
-import 'ansi.dart';
-import 'common.dart';
-import 'logger.dart';
 
 class CheckCommand extends TuneupCommand {
   CheckCommand(Tuneup tuneup)

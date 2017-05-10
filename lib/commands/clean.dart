@@ -7,8 +7,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import '../src/common.dart';
 import '../tuneup.dart';
-import 'common.dart';
 
 class CleanCommand extends TuneupCommand {
   CleanCommand(Tuneup tuneup)

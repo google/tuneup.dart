@@ -12,15 +12,15 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:tuneup/commands/clean.dart';
+import 'package:tuneup/commands/init.dart';
+import 'package:tuneup/commands/stats.dart';
+import 'package:tuneup/commands/trim.dart';
 
+import 'commands/check.dart';
 import 'src/ansi.dart';
-import 'src/check_command.dart';
-import 'src/clean_command.dart';
 import 'src/common.dart';
-import 'src/init_command.dart';
 import 'src/logger.dart';
-import 'src/stats_command.dart';
-import 'src/trim_command.dart';
 
 // This version must be updated in tandem with the pubspec version.
 const String appVersion = '0.3.0';

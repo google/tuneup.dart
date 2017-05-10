@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../src/common.dart';
 import '../tuneup.dart';
-import 'common.dart';
 
 class TrimCommand extends TuneupCommand {
   final List<FileHandler> _handlers = [

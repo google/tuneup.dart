@@ -7,8 +7,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import '../src/common.dart';
 import '../tuneup.dart';
-import 'common.dart';
 
 class InitCommand extends TuneupCommand {
   InitCommand(Tuneup tuneup) : super(tuneup, 'init', 'create a new project') {
