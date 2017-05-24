@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1+1
+- fix an NPE when analyzing a directory without a pubspec.yaml file
+
+## 0.3.0
+- re-write the `check` command to be based on the analysis server
+
 ## 0.2.6
 - rev to `0.30.0-alpha.1` of the analyzer
 - print error codes in the output (useful for `// ignore: foo_bar` comments)
