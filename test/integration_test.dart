@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:test/test.dart';
 import 'package:tuneup/src/common.dart';
-import 'package:tuneup/src/logger.dart';
 import 'package:tuneup/tuneup.dart';
 
 void main() => defineTests();
@@ -181,6 +181,12 @@ void _setupPub() {
 }
 
 class _Logger implements Logger {
+  Ansi ansi;
+
+  _Logger() {
+    ansi = new Ansi(false);
+  }
+
   StringBuffer _out = new StringBuffer();
   StringBuffer _err = new StringBuffer();
   StringBuffer _trc = new StringBuffer();
@@ -189,7 +195,7 @@ class _Logger implements Logger {
   void stderr(String message) => _err.writeln(message);
   void trace(String message) => _trc.writeln(message);
 
-  Progress progress(String message) => new SimpleProgress(this, message);
+  Progress progress(String message) => new _Progress(message);
   void progressFinished(Progress progress) {}
 
   void flush() {}
@@ -204,3 +210,20 @@ void main() {
   prints('hello world!')
 }
 ''';
+
+class _Progress implements Progress {
+  final String message;
+  Stopwatch timer;
+
+  _Progress(this.message) {
+    timer = new Stopwatch()..start();
+  }
+  @override
+  void cancel() {}
+
+  @override
+  Duration get elapsed => timer.elapsed;
+
+  @override
+  void finish({String message, bool showTiming}) {}
+}

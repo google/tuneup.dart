@@ -5,12 +5,11 @@
 import 'dart:async';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
-import '../src/ansi.dart';
 import '../src/common.dart';
-import '../src/logger.dart';
 import '../tuneup.dart';
 
 class CheckCommand extends TuneupCommand {
@@ -117,7 +116,7 @@ class CheckCommand extends TuneupCommand {
       return one.location.offset - two.location.offset;
     });
 
-    final Ansi ansi = project.ansi;
+    final Ansi ansi = project.logger.ansi;
 
     Map<String, String> colorMap = {
       'ERROR': ansi.red,

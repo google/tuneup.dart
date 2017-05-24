@@ -12,14 +12,13 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
 import 'package:args/command_runner.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:quiver/pattern.dart' show Glob;
 import 'package:yaml/yaml.dart' as yaml;
 
 import '../tuneup.dart';
-import 'ansi.dart';
-import 'logger.dart';
 
 final String pathSep = Platform.isWindows ? r'\' : '/';
 
@@ -48,11 +47,10 @@ class Project {
 
   final Directory dir;
   final Logger logger;
-  final Ansi ansi;
 
   List<Glob> _excludes = [];
 
-  Project(this.dir, this.logger, this.ansi) {
+  Project(this.dir, this.logger) {
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
     analysisFile.File file =
         resourceProvider.getFile(AnalysisEngine.ANALYSIS_OPTIONS_FILE);

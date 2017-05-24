@@ -12,15 +12,14 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:tuneup/commands/clean.dart';
 import 'package:tuneup/commands/init.dart';
 import 'package:tuneup/commands/stats.dart';
 import 'package:tuneup/commands/trim.dart';
 
 import 'commands/check.dart';
-import 'src/ansi.dart';
 import 'src/common.dart';
-import 'src/logger.dart';
 
 // This version must be updated in tandem with the pubspec version.
 const String appVersion = '0.3.1';
@@ -28,14 +27,11 @@ const String appName = 'tuneup';
 
 class Tuneup extends CommandRunner {
   Logger logger;
-  Ansi ansi;
   Project project;
 
   Tuneup({this.logger})
       : super(
             appName, 'A tool to improve visibility into your Dart projects.') {
-    ansi = new Ansi(terminalSupportsAnsi());
-
     argParser.addFlag('version',
         negatable: false, help: 'Display the application version.');
     argParser.addOption('dart-sdk', hide: true, help: 'the path to the sdk');
@@ -46,7 +42,7 @@ class Tuneup extends CommandRunner {
         help: 'Display verbose diagnostic output.');
     argParser.addFlag('color',
         help: 'Use ansi colors when printing messages.',
-        defaultsTo: terminalSupportsAnsi());
+        defaultsTo: Ansi.terminalSupportsAnsi);
 
     addCommand(new InitCommand(this));
     addCommand(new CheckCommand(this));
@@ -58,11 +54,12 @@ class Tuneup extends CommandRunner {
   Future run(Iterable<String> args, {Directory directory}) async {
     ArgResults results = args.isEmpty ? parse(['check']) : parse(args);
 
+    Ansi ansi;
     if (results.wasParsed('color')) {
       ansi = new Ansi(results['color']);
     }
 
-    logger ??= new StandardLogger(ansi);
+    logger ??= new Logger.standard(ansi: ansi);
 
     if (results['version']) {
       _out('${appName} version ${appVersion}');
@@ -82,10 +79,10 @@ class Tuneup extends CommandRunner {
     directory ??= Directory.current;
 
     if (results['verbose']) {
-      logger = new VerboseLogger(ansi);
+      logger = new Logger.verbose(ansi: ansi);
     }
 
-    project = new Project(directory, logger, ansi);
+    project = new Project(directory, logger);
 
     return runCommand(results);
   }
