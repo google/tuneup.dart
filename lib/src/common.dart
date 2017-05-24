@@ -81,7 +81,7 @@ class Project {
   }
 
   String get name {
-    if (pubspec.containsKey('name')) {
+    if (pubspec != null && pubspec.containsKey('name')) {
       return pubspec['name'];
     } else {
       return path.basename(dir.path);
@@ -97,8 +97,10 @@ class Project {
   File get packagesFile => new File(path.join(dir.path, '.packages'));
 
   yaml.YamlMap get pubspec {
-    return yaml.loadYaml(
-        new File(path.join(dir.path, 'pubspec.yaml')).readAsStringSync());
+    File pubspecFile = new File(path.join(dir.path, 'pubspec.yaml'));
+    return pubspecFile.existsSync()
+        ? yaml.loadYaml(pubspecFile.readAsStringSync())
+        : null;
   }
 
   List<File> getSourceFiles({List<String> extensions: const ['dart']}) {
