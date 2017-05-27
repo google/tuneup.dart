@@ -25,19 +25,27 @@ class CheckCommand extends TuneupCommand {
 
     Stopwatch stopwatch = new Stopwatch()..start();
 
+    List<String> serverArgs =
+        project.logger.isVerbose ? ['--internal-print-to-console'] : [];
+
     // init
-    AnalysisServer client = await AnalysisServer.create(onRead: (String msg) {
-      const int max = 140;
-      String s = msg.length > max ? '${msg.substring(0, max)}...' : msg;
-      project.trace('<-- $s');
-    }, onWrite: (String msg) {
-      project.trace('[--> $msg]');
-    });
+    AnalysisServer client = await AnalysisServer.create(
+      onRead: (String msg) {
+        const int max = 140;
+        String s = msg.length > max ? '${msg.substring(0, max)}...' : msg;
+        project.trace('<-- $s');
+      },
+      onWrite: (String msg) {
+        project.trace('[--> $msg]');
+      },
+      sdkPath: project.sdkPath,
+      serverArgs: serverArgs,
+    );
 
     Completer completer = new Completer();
     client.processCompleter.future.then((int code) {
       if (!completer.isCompleted) {
-        completer.completeError('analysis exited early (exit code $code');
+        completer.completeError('analysis exited early (exit code $code)');
       }
     });
 

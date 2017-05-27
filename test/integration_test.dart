@@ -203,6 +203,8 @@ class _Logger implements Logger {
   String get out => _out.toString();
   String get err => _err.toString();
   String get trc => _trc.toString();
+
+  bool get isVerbose => true;
 }
 
 String _errorText = '''

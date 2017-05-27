@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1+2
+- allow an sdk to be specified with `--dart-sdk`
+
 ## 0.3.1+1
 - fix an NPE when analyzing a directory without a pubspec.yaml file
 
