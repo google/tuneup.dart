@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:cli_util/cli_util.dart';
 import 'package:tuneup/commands/clean.dart';
 import 'package:tuneup/commands/init.dart';
 import 'package:tuneup/commands/stats.dart';
@@ -22,7 +23,7 @@ import 'commands/check.dart';
 import 'src/common.dart';
 
 // This version must be updated in tandem with the pubspec version.
-const String appVersion = '0.3.1+1';
+const String appVersion = '0.3.1+2';
 const String appName = 'tuneup';
 
 class Tuneup extends CommandRunner {
@@ -76,13 +77,16 @@ class Tuneup extends CommandRunner {
       directory = dir;
     }
 
+    String sdkPath =
+        results.wasParsed('dart-sdk') ? results['dart-sdk'] : getSdkPath();
+
     directory ??= Directory.current;
 
     if (results['verbose']) {
       logger = new Logger.verbose(ansi: ansi);
     }
 
-    project = new Project(directory, logger);
+    project = new Project(directory, sdkPath, logger);
 
     return runCommand(results);
   }

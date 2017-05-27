@@ -46,11 +46,12 @@ class Project {
   ];
 
   final Directory dir;
+  final String sdkPath;
   final Logger logger;
 
   List<Glob> _excludes = [];
 
-  Project(this.dir, this.logger) {
+  Project(this.dir, this.sdkPath, this.logger) {
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
     analysisFile.File file =
         resourceProvider.getFile(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
@@ -87,8 +88,6 @@ class Project {
       return path.basename(dir.path);
     }
   }
-
-  String get sdkPath => path.dirname(path.dirname(Platform.resolvedExecutable));
 
   String get packagePath => path.join(dir.path, 'packages');
 
