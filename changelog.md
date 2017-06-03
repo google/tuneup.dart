@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1+3
+- pass the `--client-id` field into the analysis server
+
 ## 0.3.1+2
 - allow an sdk to be specified with `--dart-sdk`
 

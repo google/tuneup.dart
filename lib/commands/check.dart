@@ -40,6 +40,8 @@ class CheckCommand extends TuneupCommand {
       },
       sdkPath: project.sdkPath,
       serverArgs: serverArgs,
+      clientId: appName,
+      clientVersion: appVersion,
     );
 
     Completer completer = new Completer();
