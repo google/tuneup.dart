@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.2+2
+- better server crash reporting
+
 ## 0.3.2+1
 - fix an issue responding to analysis server crashes
 

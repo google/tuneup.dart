@@ -62,11 +62,18 @@ class CheckCommand extends TuneupCommand {
 
     await client.server.onConnected.first.timeout(new Duration(seconds: 10));
 
+    bool hadServerError = false;
+
     // handle errors
-    client.server.onError.listen((ServerError e) {
-      StackTrace trace =
-          e.stackTrace == null ? null : new StackTrace.fromString(e.stackTrace);
-      completer.completeError(e, trace);
+    client.server.onError.listen((ServerError error) {
+      StackTrace trace = error.stackTrace == null
+          ? null
+          : new StackTrace.fromString(error.stackTrace);
+
+      project.logger.stderr('${error}');
+      project.logger.stderr('${trace.toString().trim()}');
+
+      hadServerError = true;
     });
 
     client.server.setSubscriptions(['STATUS']);
@@ -190,7 +197,7 @@ class CheckCommand extends TuneupCommand {
         'in ${secondsFormat.format(seconds)}s${ignoreMessage}.');
 
     // return the results
-    return errors.isEmpty
+    return (errors.isEmpty && !hadServerError)
         ? new Future.value()
         : new Future.error(new ExitCode(1));
   }
