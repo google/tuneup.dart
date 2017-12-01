@@ -17,6 +17,8 @@ class CheckCommand extends TuneupCommand {
       : super(tuneup, 'check', 'analyze all the source code in the project') {
     argParser.addFlag('ignore-infos',
         negatable: false, help: 'Ignore any info level issues.');
+    argParser.addFlag('preview-dart-2',
+        help: 'Run the analysis server using the new common front end.');
   }
 
   Future execute(Project project, [args]) async {
@@ -25,8 +27,15 @@ class CheckCommand extends TuneupCommand {
 
     Stopwatch stopwatch = new Stopwatch()..start();
 
-    List<String> serverArgs =
-        project.logger.isVerbose ? ['--internal-print-to-console'] : [];
+    List<String> serverArgs = [];
+
+    if (project.logger.isVerbose) {
+      serverArgs.add('--internal-print-to-console');
+    }
+
+    if (argResults['preview-dart-2']) {
+      serverArgs.add('--preview-dart-2');
+    }
 
     // init
     AnalysisServer client = await AnalysisServer.create(
@@ -156,7 +165,8 @@ class CheckCommand extends TuneupCommand {
         String code = e.code;
 
         project.print('  ${issueColor}$severity${ansi.none} ${ansi.bullet} '
-            '${ansi.bold}$message${ansi.none} at $location ${ansi.bullet} ($code)');
+            '${ansi.bold}$message${ansi.none} at $location ${ansi
+            .bullet} ($code)');
       });
 
       project.print('');
@@ -164,15 +174,17 @@ class CheckCommand extends TuneupCommand {
 
     String ignoreMessage = '';
     if (ignoredCount > 0) {
-      ignoreMessage =
-          ' (${formatNumber(ignoredCount)} ${pluralize("issue", ignoredCount)} ignored)';
+      ignoreMessage = ' (${formatNumber(ignoredCount)} ${pluralize(
+          "issue", ignoredCount)} ignored)';
     }
 
     final NumberFormat secondsFormat = new NumberFormat('0.0');
     double seconds = stopwatch.elapsedMilliseconds / 1000.0;
     project.print(
-        '${errors.isEmpty ? "No" : formatNumber(errors.length)} ${pluralize("issue", errors.length)} '
-        'found; analyzed ${formatNumber(sources.length)} source ${pluralize("file", sources.length)} '
+        '${errors.isEmpty ? "No" : formatNumber(errors.length)} ${pluralize(
+            "issue", errors.length)} '
+        'found; analyzed ${formatNumber(sources.length)} source ${pluralize(
+            "file", sources.length)} '
         'in ${secondsFormat.format(seconds)}s${ignoreMessage}.');
 
     // return the results

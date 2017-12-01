@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.2
+- add a `--preview-dart-2` flag
+
 ## 0.3.1+3
 - pass the `--client-id` field into the analysis server
 
