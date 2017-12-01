@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.2+1
+- fix an issue responding to analysis server crashes
+
 ## 0.3.2
 - add a `--preview-dart-2` flag
 

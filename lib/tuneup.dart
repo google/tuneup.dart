@@ -23,7 +23,7 @@ import 'commands/check.dart';
 import 'src/common.dart';
 
 // This version must be updated in tandem with the pubspec version.
-const String appVersion = '0.3.2';
+const String appVersion = '0.3.2+1';
 const String appName = 'tuneup';
 
 class Tuneup extends CommandRunner {

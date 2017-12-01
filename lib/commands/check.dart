@@ -75,7 +75,9 @@ class CheckCommand extends TuneupCommand {
 
       if (!status.analysis.isAnalyzing) {
         // notify finished
-        completer.complete(true);
+        if (!completer.isCompleted) {
+          completer.complete(true);
+        }
         client.dispose();
       }
     });
