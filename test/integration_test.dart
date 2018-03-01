@@ -39,7 +39,7 @@ void defineTests() {
         return tuneup.run(['check'], directory: foo);
       }).then((_) {
         expect(
-            logger.out, contains('No issues found; analyzed 1 source file in'));
+            logger.out, contains('No issues found; analyzed 2 source files in'));
         expect(logger.err, isEmpty);
       });
     });
@@ -135,7 +135,7 @@ void defineTests() {
         return tuneup.run(['check'], directory: foo);
       }).then((_) {
         expect(
-            logger.out, contains('No issues found; analyzed 1 source file in'));
+            logger.out, contains('No issues found; analyzed 2 source files in'));
         expect(logger.err, isEmpty);
       });
     });
@@ -154,7 +154,7 @@ void defineTests() {
       }).catchError((e) {
         expect(e is ExitCode, true);
         expect(
-            logger.out, contains('2 issues found; analyzed 1 source file in'));
+            logger.out, contains('2 issues found; analyzed 2 source files in'));
         expect(logger.err, isEmpty);
       });
     });
