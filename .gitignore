@@ -1,6 +1,7 @@
 .c9/
 .DS_Store
 .idea
+.dart_tool/
 .pub/
 build/
 packages

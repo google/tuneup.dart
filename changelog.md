@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.3
+- upgrade package dependencies
+
 ## 0.3.2+2
 - better server crash reporting
 

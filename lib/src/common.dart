@@ -5,12 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/file_system/file_system.dart' as analysisFile
-    show File;
-import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/engine.dart' hide Logger;
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:intl/intl.dart';
@@ -51,35 +45,7 @@ class Project {
 
   List<Glob> _excludes = [];
 
-  Project(this.dir, this.sdkPath, this.logger) {
-    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    analysisFile.File file =
-        resourceProvider.getFile(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
-    if (!file.exists) {
-      file =
-          resourceProvider.getFile(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    }
-    if (file.exists) {
-      AnalysisOptionsProvider analysisOptions = new AnalysisOptionsProvider();
-      Map options = analysisOptions.getOptionsFromFile(file);
-
-      if (options != null && options.isNotEmpty) {
-        // Handle excludes.
-        // analyzer:
-        //   exclude:
-        //     - test/data/*
-        dynamic analyzerSection = options['analyzer'];
-        if (analyzerSection is Map) {
-          dynamic excludes = analyzerSection['exclude'];
-          if (excludes is List) {
-            _excludes.addAll(excludes
-                .where((ex) => ex is String)
-                .map((st) => new Glob(st)));
-          }
-        }
-      }
-    }
-  }
+  Project(this.dir, this.sdkPath, this.logger);
 
   String get name {
     if (pubspec != null && pubspec.containsKey('name')) {
