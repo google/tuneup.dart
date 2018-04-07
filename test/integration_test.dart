@@ -38,8 +38,8 @@ void defineTests() {
         _setupPub();
         return tuneup.run(['check'], directory: foo);
       }).then((_) {
-        expect(
-            logger.out, contains('No issues found; analyzed 2 source files in'));
+        expect(logger.out,
+            contains('No issues found; analyzed 2 source files in'));
         expect(logger.err, isEmpty);
       });
     });
@@ -134,8 +134,8 @@ void defineTests() {
         _setupPub();
         return tuneup.run(['check'], directory: foo);
       }).then((_) {
-        expect(
-            logger.out, contains('No issues found; analyzed 2 source files in'));
+        expect(logger.out,
+            contains('No issues found; analyzed 2 source files in'));
         expect(logger.err, isEmpty);
       });
     });
