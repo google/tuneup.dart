@@ -51,6 +51,7 @@ class CheckCommand extends TuneupCommand {
       serverArgs: serverArgs,
       clientId: appName,
       clientVersion: appVersion,
+      //vmArgs: ['--preview-dart-2'],
     );
 
     Completer completer = new Completer();

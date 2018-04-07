@@ -2,7 +2,7 @@ name: tuneup
 description: A command-line tool to manipulate and inspect your Dart projects.
 
 # This version must be updated in tandem with the lib/tuneup.dart version.
-version: 0.3.2+2
+version: 0.3.3
 author: Devon Carew <devoncarew@google.com>
 homepage: https://github.com/google/tuneup.dart
 
@@ -10,18 +10,16 @@ environment:
   sdk: '>=1.23.0 <2.0.0'
 
 dependencies:
-  analysis_server_lib: ^0.1.1+1
-  analyzer: ^0.30.0
-  args: '>=0.12.0 <0.14.0'
-  cli_util: ^0.1.1
+  analysis_server_lib: ^0.1.4
+  args: ^1.0.0
+  cli_util: ^0.1.2
   intl: ^0.15.0
   logging: ^0.11.0
   path: '>=1.4.0 <2.0.0'
-  quiver: ^0.24.0
+  quiver: ^0.29.0
   yaml: '>=2.0.0 <3.0.0'
 
 dev_dependencies:
-  html: ^0.13.0
   test: ^0.12.0
 
 # Add the bin/tuneup.dart script to the scripts pub installs.
