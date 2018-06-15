@@ -18,7 +18,11 @@ class CheckCommand extends TuneupCommand {
     argParser.addFlag('ignore-infos',
         negatable: false, help: 'Ignore any info level issues.');
     argParser.addFlag('preview-dart-2',
+        help: 'Run the analysis server opt-ed into Dart 2.');
+    argParser.addFlag('use-cfe',
         help: 'Run the analysis server using the new common front end.');
+    argParser.addFlag('use-fasta-parser',
+        help: 'Run the analysis server using the Fasta parser.');
   }
 
   Future execute(Project project, [args]) async {
@@ -35,6 +39,22 @@ class CheckCommand extends TuneupCommand {
 
     if (argResults['preview-dart-2']) {
       serverArgs.add('--preview-dart-2');
+    }
+
+    if (argResults.wasParsed('use-cfe')) {
+      if (argResults['use-cfe']) {
+        serverArgs.add('--use-cfe');
+      } else {
+        serverArgs.add('--no-use-cfe');
+      }
+    }
+
+    if (argResults.wasParsed('use-fasta-parser')) {
+      if (argResults['use-fasta-parser']) {
+        serverArgs.add('--use-fasta-parser');
+      } else {
+        serverArgs.add('--no-use-fasta-parser');
+      }
     }
 
     // init

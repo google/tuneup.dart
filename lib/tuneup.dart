@@ -23,7 +23,7 @@ import 'commands/check.dart';
 import 'src/common.dart';
 
 // This version must be updated in tandem with the pubspec version.
-const String appVersion = '0.3.3';
+const String appVersion = '0.3.4';
 const String appName = 'tuneup';
 
 class Tuneup extends CommandRunner {
@@ -35,7 +35,7 @@ class Tuneup extends CommandRunner {
             appName, 'A tool to improve visibility into your Dart projects.') {
     argParser.addFlag('version',
         negatable: false, help: 'Display the application version.');
-    argParser.addOption('dart-sdk', hide: true, help: 'the path to the sdk');
+    argParser.addOption('dart-sdk', help: 'the path to the sdk');
     argParser.addOption('directory', help: 'The project directory to analyze.');
     argParser.addFlag('verbose',
         negatable: false,

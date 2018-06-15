@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.4
+- add additional flags to the check command
+
 ## 0.3.3
 - upgrade package dependencies
 
