@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.5
+- fix an issue where the `--ignore-infos` flag was ignored
+
 ## 0.3.4
 - add additional flags to the check command
 

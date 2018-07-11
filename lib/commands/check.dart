@@ -25,7 +25,7 @@ class CheckCommand extends TuneupCommand {
         help: 'Run the analysis server using the Fasta parser.');
   }
 
-  Future execute(Project project, [args]) async {
+  Future execute(Project project) async {
     Progress progress =
         project.logger.progress('Checking project ${project.name}');
 
@@ -92,7 +92,9 @@ class CheckCommand extends TuneupCommand {
           : new StackTrace.fromString(error.stackTrace);
 
       project.logger.stderr('${error}');
-      project.logger.stderr('${trace.toString().trim()}');
+      if (trace != null) {
+        project.logger.stderr('${trace.toString().trim()}');
+      }
 
       hadServerError = true;
     });
@@ -144,7 +146,7 @@ class CheckCommand extends TuneupCommand {
     errors.removeWhere((e) => e.code == 'todo');
 
     // Optionally filter out infos.
-    bool ignoreInfos = args == null ? false : args['ignore-infos'];
+    bool ignoreInfos = argResults == null ? false : argResults['ignore-infos'];
     int ignoredCount = 0;
     if (ignoreInfos) {
       List<AnalysisError> newErrors =
@@ -196,7 +198,7 @@ class CheckCommand extends TuneupCommand {
 
         project.print('  ${issueColor}$severity${ansi.none} ${ansi.bullet} '
             '${ansi.bold}$message${ansi.none} at $location ${ansi
-            .bullet} ($code)');
+                .bullet} ($code)');
       });
 
       project.print('');

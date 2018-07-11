@@ -22,7 +22,7 @@ class TrimCommand extends TuneupCommand {
   TrimCommand(Tuneup tuneup)
       : super(tuneup, 'trim', 'trim unwanted whitespace from your source');
 
-  Future execute(Project project, [args]) {
+  Future execute(Project project) {
     List<String> ext = new List.from(_handlers.expand((h) => h.types));
     List<File> files = project.getSourceFiles(extensions: ext);
 
