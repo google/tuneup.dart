@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.6
+- updated pubspec dependencies for Dart 2
+
 ## 0.3.5
 - fix an issue where the `--ignore-infos` flag was ignored
 
