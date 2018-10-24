@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.6+1
+- reduced the package dependencies
+
 ## 0.3.6
 - updated pubspec dependencies for Dart 2
 
