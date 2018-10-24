@@ -9,10 +9,10 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
-import 'package:quiver/pattern.dart' show Glob;
 import 'package:yaml/yaml.dart' as yaml;
 
 import '../tuneup.dart';
+import 'glob.dart';
 
 final String pathSep = Platform.isWindows ? r'\' : '/';
 
