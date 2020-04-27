@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.6+2
+- widened our dependency on package:intl
+
 ## 0.3.6+1
 - reduced the package dependencies
 
