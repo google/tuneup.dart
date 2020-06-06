@@ -194,6 +194,8 @@ class _Logger implements Logger {
   void stdout(String message) => _out.writeln(message);
   void stderr(String message) => _err.writeln(message);
   void trace(String message) => _trc.writeln(message);
+  void write(String message) => _out.write(message);
+  void writeCharCode(int charCode) => _out.writeCharCode(charCode);
 
   Progress progress(String message) => new _Progress(message);
   void progressFinished(Progress progress) {}
