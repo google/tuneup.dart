@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.7
+- add a new `--fail-on-todos` flag to the check command
+- update the `package:cli_util` dep
+
 ## 0.3.6+2
 - widened our dependency on package:intl
 
