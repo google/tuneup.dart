@@ -17,6 +17,10 @@ class CheckCommand extends TuneupCommand {
       : super(tuneup, 'check', 'analyze all the source code in the project') {
     argParser.addFlag('ignore-infos',
         negatable: false, help: 'Ignore any info level issues.');
+    argParser.addFlag('fail-on-todos',
+        help: 'Fail if any TODOs are found.',
+        negatable: false,
+        defaultsTo: false);
     argParser.addFlag('preview-dart-2',
         help: 'Run the analysis server opt-ed into Dart 2.');
     argParser.addFlag('use-cfe',
@@ -142,8 +146,10 @@ class CheckCommand extends TuneupCommand {
       return a;
     });
 
-    // Don't show todos.
-    errors.removeWhere((e) => e.code == 'todo');
+    if (!argResults['fail-on-todos']) {
+      // Don't show todos.
+      errors.removeWhere((e) => e.code == 'todo');
+    }
 
     // Optionally filter out infos.
     bool ignoreInfos = argResults == null ? false : argResults['ignore-infos'];
