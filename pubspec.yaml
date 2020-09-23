@@ -6,7 +6,7 @@ version: 0.3.7
 homepage: https://github.com/google/tuneup.dart
 
 environment:
-  sdk: '>=1.23.0 <3.0.0'
+  sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
   analysis_server_lib: ^0.1.4
