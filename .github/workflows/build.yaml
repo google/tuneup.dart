@@ -1,0 +1,33 @@
+name: Dart
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image:  google/dart:dev
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: pub get
+        run: pub get
+
+      - name: dart format
+        run: dart format --output=none --set-exit-if-changed .
+
+        # Verify that the libraries are error free.
+      - name: dart bin/tuneup.dart check
+        run: dart bin/tuneup.dart check --no-color
+
+      - name: dart analyze
+        run: dart analyze --fatal-infos
+
+      - name: dart test
+        run: dart test
