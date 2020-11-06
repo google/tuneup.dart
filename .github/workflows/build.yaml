@@ -19,6 +19,9 @@ jobs:
       - name: pub get
         run: pub get
 
+      - name: test github output
+        run: dart tool/github.dart
+
       - name: dart format
         run: dart format --output=none --set-exit-if-changed .
 
