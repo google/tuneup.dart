@@ -5,7 +5,7 @@ void main(List<String> args) {
 
 void createOutput(String line) {
   print(line);
-  warningFile('Here \'s a warning.', 'tool/github.dart');
+  warningFile('A warning.', 'tool/github.dart');
   print(line);
 
   group('foo group', () {
@@ -24,7 +24,7 @@ void createOutput(String line) {
   warning(line);
   error(line);
   print(line);
-  errorFile('Here \'s an error.', 'tool/github.dart', line: 27);
+  errorFile('An error.', 'tool/github.dart', line: 27);
   errorFile(
     'more errors - class Tuneup',
     'lib/tuneup.dart',
@@ -52,26 +52,26 @@ void error(String message) {
 }
 
 void warningFile(String message, String filePath, {int line, int column}) {
-  String out = '::warning file={$filePath}';
+  String out = '::warning file=$filePath';
   if (line != null) {
-    out += ',line={$line}';
+    out += ',line=$line';
   }
   if (column != null) {
-    out += ',col={$column}';
+    out += ',col=$column';
   }
-  out += '::{$message}';
+  out += '::$message';
   print(out);
 }
 
 void errorFile(String message, String filePath, {int line, int column}) {
-  String out = '::error file={$filePath}';
+  String out = '::error file=$filePath';
   if (line != null) {
-    out += ',line={$line}';
+    out += ',line=$line';
   }
   if (column != null) {
-    out += ',col={$column}';
+    out += ',col=$column';
   }
-  out += '::{$message}';
+  out += '::$message';
   print(out);
 }
 
