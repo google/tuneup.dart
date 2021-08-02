@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.8
+- upgrade package deps to the latest versions
+
 ## 0.3.7
 - add a new `--fail-on-todos` flag to the check command
 - update the `package:cli_util` dep
