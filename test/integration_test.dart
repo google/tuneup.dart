@@ -229,5 +229,5 @@ class _Progress implements Progress {
   Duration get elapsed => timer.elapsed;
 
   @override
-  void finish({String message, bool showTiming}) {}
+  void finish({String message, bool showTiming = false}) {}
 }
