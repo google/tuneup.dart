@@ -203,8 +203,7 @@ class CheckCommand extends TuneupCommand {
         String code = e.code;
 
         project.print('  ${issueColor}$severity${ansi.none} ${ansi.bullet} '
-            '${ansi.bold}$message${ansi.none} at $location ${ansi
-                .bullet} ($code)');
+            '${ansi.bold}$message${ansi.none} at $location ${ansi.bullet} ($code)');
       });
 
       project.print('');
@@ -212,17 +211,15 @@ class CheckCommand extends TuneupCommand {
 
     String ignoreMessage = '';
     if (ignoredCount > 0) {
-      ignoreMessage = ' (${formatNumber(ignoredCount)} ${pluralize(
-          "issue", ignoredCount)} ignored)';
+      ignoreMessage =
+          ' (${formatNumber(ignoredCount)} ${pluralize("issue", ignoredCount)} ignored)';
     }
 
     final NumberFormat secondsFormat = new NumberFormat('0.0');
     double seconds = stopwatch.elapsedMilliseconds / 1000.0;
     project.print(
-        '${errors.isEmpty ? "No" : formatNumber(errors.length)} ${pluralize(
-            "issue", errors.length)} '
-        'found; analyzed ${formatNumber(sources.length)} source ${pluralize(
-            "file", sources.length)} '
+        '${errors.isEmpty ? "No" : formatNumber(errors.length)} ${pluralize("issue", errors.length)} '
+        'found; analyzed ${formatNumber(sources.length)} source ${pluralize("file", sources.length)} '
         'in ${secondsFormat.format(seconds)}s${ignoreMessage}.');
 
     // return the results
