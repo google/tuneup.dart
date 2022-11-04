@@ -45,8 +45,8 @@ class TrimCommand extends TuneupCommand {
     }
 
     if (modifiedCount > 0) {
-      project.print(
-          '$modifiedCount ${pluralize("file", modifiedCount)} changed.');
+      project
+          .print('$modifiedCount ${pluralize("file", modifiedCount)} changed.');
     } else {
       project.print('No files changed.');
     }
