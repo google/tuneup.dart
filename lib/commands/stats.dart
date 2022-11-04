@@ -15,37 +15,38 @@ class StatsCommand extends TuneupCommand {
       : super(tuneup, 'stats',
             'display metadata and statistics about the project');
 
+  @override
   Future execute(Project project) {
-    Map pubspec = project.pubspec;
+    Map pubspec = project.pubspec!;
 
     String version = pubspec.containsKey('version') ? pubspec['version'] : '-';
 
-    project.print("Package '${project.name}', version ${version}.");
+    project.print("Package '${project.name}', version $version.");
 
     List<File> files =
         project.getSourceFiles(extensions: ['dart', 'html', 'css']);
 
     Map _stats = {};
 
-    files.forEach((file) {
+    for (var file in files) {
       String ext = path.extension(file.path);
       if (ext.startsWith('.')) ext = ext.substring(1);
       if (!_stats.containsKey(ext)) {
-        _stats[ext] = new _Stats();
+        _stats[ext] = _Stats();
       }
       _stats[ext].files++;
       _stats[ext].lines += _lineCount(file);
-    });
+    }
 
     _Stats all = _stats.values
-        .reduce((a, b) => new _Stats(a.files + b.files, a.lines + b.lines));
+        .reduce((a, b) => _Stats(a.files + b.files, a.lines + b.lines));
 
     // "Found 288 Dart files and 44,863 lines of code."
     // TODO: print a breakdown by type
     project.print('Found ${formatNumber(all.files)} source files and '
         '${formatNumber(all.lines)} lines of code.');
 
-    return new Future.value();
+    return Future.value();
   }
 }
 

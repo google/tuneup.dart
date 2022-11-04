@@ -1,4 +1,7 @@
-# Changelog
+## 0.3.9
+- converted to null safety
+- moved to a min sdk of `2.12.0`
+- switched to using `package:lints` for analysis
 
 ## 0.3.8
 - upgrade package deps to the latest versions

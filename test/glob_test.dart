@@ -8,7 +8,7 @@ main() {
     test('should match "*" against sequences of word chars', () {
       expectGlob("*.html", matches: [
         "a.html",
-        "_-\a.html",
+        "_-a.html",
         r"^$*?.html",
         "()[]{}.html",
         "↭.html",
@@ -39,18 +39,22 @@ main() {
   });
 }
 
-expectGlob(String pattern, {List<String> matches, List<String> nonMatches}) {
-  var glob = new Glob(pattern);
+expectGlob(
+  String pattern, {
+  required List<String> matches,
+  required List<String> nonMatches,
+}) {
+  var glob = Glob(pattern);
   for (var str in matches) {
     expect(glob.hasMatch(str), true);
     expect(glob.allMatches(str).map((m) => m.input), [str]);
-    var match = glob.matchAsPrefix(str);
+    var match = glob.matchAsPrefix(str)!;
     expect(match.start, 0);
     expect(match.end, str.length);
   }
   for (var str in nonMatches) {
     expect(glob.hasMatch(str), false);
-    var m = new List.from(glob.allMatches(str));
+    var m = List.from(glob.allMatches(str));
     expect(m.length, 0);
     expect(glob.matchAsPrefix(str), null);
   }

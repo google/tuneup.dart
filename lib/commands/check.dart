@@ -29,11 +29,12 @@ class CheckCommand extends TuneupCommand {
         help: 'Run the analysis server using the Fasta parser.');
   }
 
+  @override
   Future execute(Project project) async {
     Progress progress =
         project.logger.progress('Checking project ${project.name}');
 
-    Stopwatch stopwatch = new Stopwatch()..start();
+    Stopwatch stopwatch = Stopwatch()..start();
 
     List<String> serverArgs = [];
 
@@ -41,20 +42,20 @@ class CheckCommand extends TuneupCommand {
       serverArgs.add('--internal-print-to-console');
     }
 
-    if (argResults['preview-dart-2']) {
+    if (argResults!['preview-dart-2']) {
       serverArgs.add('--preview-dart-2');
     }
 
-    if (argResults.wasParsed('use-cfe')) {
-      if (argResults['use-cfe']) {
+    if (argResults!.wasParsed('use-cfe')) {
+      if (argResults!['use-cfe']) {
         serverArgs.add('--use-cfe');
       } else {
         serverArgs.add('--no-use-cfe');
       }
     }
 
-    if (argResults.wasParsed('use-fasta-parser')) {
-      if (argResults['use-fasta-parser']) {
+    if (argResults!.wasParsed('use-fasta-parser')) {
+      if (argResults!['use-fasta-parser']) {
         serverArgs.add('--use-fasta-parser');
       } else {
         serverArgs.add('--no-use-fasta-parser');
@@ -78,27 +79,23 @@ class CheckCommand extends TuneupCommand {
       //vmArgs: ['--preview-dart-2'],
     );
 
-    Completer completer = new Completer();
+    Completer completer = Completer();
     client.processCompleter.future.then((int code) {
       if (!completer.isCompleted) {
         completer.completeError('analysis exited early (exit code $code)');
       }
     });
 
-    await client.server.onConnected.first.timeout(new Duration(seconds: 10));
+    await client.server.onConnected.first.timeout(Duration(seconds: 10));
 
     bool hadServerError = false;
 
     // handle errors
     client.server.onError.listen((ServerError error) {
-      StackTrace trace = error.stackTrace == null
-          ? null
-          : new StackTrace.fromString(error.stackTrace);
+      StackTrace trace = StackTrace.fromString(error.stackTrace);
 
-      project.logger.stderr('${error}');
-      if (trace != null) {
-        project.logger.stderr('${trace.toString().trim()}');
-      }
+      project.logger.stderr('$error');
+      project.logger.stderr(trace.toString().trim());
 
       hadServerError = true;
     });
@@ -107,7 +104,7 @@ class CheckCommand extends TuneupCommand {
     client.server.onStatus.listen((ServerStatus status) {
       if (status.analysis == null) return;
 
-      if (!status.analysis.isAnalyzing) {
+      if (!status.analysis!.isAnalyzing) {
         // notify finished
         if (!completer.isCompleted) {
           completer.complete(true);
@@ -116,7 +113,7 @@ class CheckCommand extends TuneupCommand {
       }
     });
 
-    Map<String, List<AnalysisError>> errorMap = new Map();
+    Map<String, List<AnalysisError>> errorMap = {};
     client.analysis.onErrors.listen((AnalysisErrors e) {
       errorMap[e.file] = e.errors;
     });
@@ -130,29 +127,32 @@ class CheckCommand extends TuneupCommand {
     } catch (error, st) {
       progress.cancel();
 
-      project.logger.stderr('${error}');
-      project.logger.stderr('${st}');
+      project.logger.stderr('$error');
+      project.logger.stderr('$st');
 
-      return new ExitCode(1);
+      return ExitCode(1);
     }
 
     progress.finish();
 
     // sort, filter, print errors
-    List<String> sources = errorMap.keys.toList();
-    List<AnalysisError> errors =
-        sources.map((String key) => errorMap[key]).fold([], (List a, List b) {
-      a.addAll(b);
-      return a;
-    });
+    var sources = errorMap.keys;
+    var errorsIterable = sources.map((String key) => errorMap[key]!);
+    var errors = errorsIterable.fold(
+      <AnalysisError>[],
+      (List<AnalysisError> a, List<AnalysisError> b) {
+        a.addAll(b);
+        return a;
+      },
+    );
 
-    if (!argResults['fail-on-todos']) {
+    if (!argResults!['fail-on-todos']) {
       // Don't show todos.
       errors.removeWhere((e) => e.code == 'todo');
     }
 
     // Optionally filter out infos.
-    bool ignoreInfos = argResults == null ? false : argResults['ignore-infos'];
+    bool ignoreInfos = argResults == null ? false : argResults!['ignore-infos'];
     int ignoredCount = 0;
     if (ignoreInfos) {
       List<AnalysisError> newErrors =
@@ -183,7 +183,7 @@ class CheckCommand extends TuneupCommand {
     if (errors.isNotEmpty) {
       project.print('');
 
-      errors.forEach((AnalysisError e) {
+      for (var e in errors) {
         String issueColor = colorMap[e.severity] ?? '';
 
         String severity = e.severity.toLowerCase();
@@ -202,9 +202,9 @@ class CheckCommand extends TuneupCommand {
 
         String code = e.code;
 
-        project.print('  ${issueColor}$severity${ansi.none} ${ansi.bullet} '
+        project.print('  $issueColor$severity${ansi.none} ${ansi.bullet} '
             '${ansi.bold}$message${ansi.none} at $location ${ansi.bullet} ($code)');
-      });
+      }
 
       project.print('');
     }
@@ -215,17 +215,17 @@ class CheckCommand extends TuneupCommand {
           ' (${formatNumber(ignoredCount)} ${pluralize("issue", ignoredCount)} ignored)';
     }
 
-    final NumberFormat secondsFormat = new NumberFormat('0.0');
+    final NumberFormat secondsFormat = NumberFormat('0.0');
     double seconds = stopwatch.elapsedMilliseconds / 1000.0;
     project.print(
         '${errors.isEmpty ? "No" : formatNumber(errors.length)} ${pluralize("issue", errors.length)} '
         'found; analyzed ${formatNumber(sources.length)} source ${pluralize("file", sources.length)} '
-        'in ${secondsFormat.format(seconds)}s${ignoreMessage}.');
+        'in ${secondsFormat.format(seconds)}s$ignoreMessage.');
 
     // return the results
     return (errors.isEmpty && !hadServerError)
-        ? new Future.value()
-        : new Future.error(new ExitCode(1));
+        ? Future.value()
+        : Future.error(ExitCode(1));
   }
 }
 
