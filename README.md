@@ -1,8 +1,16 @@
-# tuneup.dart
+[![Dart](https://github.com/google/tuneup.dart/actions/workflows/build.yaml/badge.svg)](https://github.com/google/tuneup.dart/actions/workflows/build.yaml)
+[![pub package](https://img.shields.io/pub/v/tuneup.svg)](https://pub.dev/packages/tuneup)
 
 A command-line tool to manipulate and inspect your Dart projects.
 
-[![Build Status](https://github.com/google/tuneup.dart/workflows/Dart/badge.svg)](https://github.com/google/tuneup.dart/actions)
+## Update: Discontinued
+
+Note, this package has been discontinued. Since `tuneup` was initially created
+the `dart` command line tool has largely supplanted this tool's functionality
+(with `dart create`, `dart analyze`, ...).
+
+The discontinuation (and any discussion about it) can be tracked at
+https://github.com/google/tuneup.dart/issues/96.
 
 ## Installing
 

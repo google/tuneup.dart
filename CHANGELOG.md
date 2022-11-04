@@ -1,3 +1,6 @@
+## 0.4.0
+- discontinued this package (see details in the readme)
+
 ## 0.3.9
 - converted to null safety
 - moved to a min sdk of `2.12.0`
