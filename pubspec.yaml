@@ -1,9 +1,8 @@
 name: tuneup
-description: A command-line tool to manipulate and inspect your Dart projects.
-
 # This version must be updated in tandem with the lib/tuneup.dart version.
 version: 0.3.9
-homepage: https://github.com/google/tuneup.dart
+description: A command-line tool to manipulate and inspect your Dart projects.
+repository: https://github.com/google/tuneup.dart
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
