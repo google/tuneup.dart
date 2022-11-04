@@ -8,11 +8,12 @@ A command-line tool to manipulate and inspect your Dart projects.
 
 To install, run:
 
-    pub global activate tuneup
+    dart pub global activate tuneup
 
 ## Running
 
-Run `tuneup --help` (or `pub global run tuneup --help`) to see a list of available commands.
+Run `tuneup --help` (or `dart pub global run tuneup --help`) to see a list of
+available commands.
 
 - *init*: create a new project
 - *check*: analyze all the source code in the project - fail if there are any
@@ -23,7 +24,7 @@ Run `tuneup --help` (or `pub global run tuneup --help`) to see a list of availab
 
 Then run a tuneup command, like `check`:
 
-    pub global run tuneup check
+    dart pub global run tuneup check
 
 or,
 
@@ -33,7 +34,8 @@ from the root of your project.
 
 ## Filing Issues
 
-Please file reports on the [GitHub Issue Tracker](https://github.com/google/tuneup.dart/issues).
+Please file reports on the
+[GitHub Issue Tracker](https://github.com/google/tuneup.dart/issues).
 
 ## Disclaimer
 

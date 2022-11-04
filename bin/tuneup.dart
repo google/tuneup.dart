@@ -9,7 +9,7 @@ import 'package:tuneup/src/common.dart';
 import 'package:tuneup/tuneup.dart';
 
 void main(List<String> args) {
-  Tuneup tuneup = new Tuneup();
+  Tuneup tuneup = Tuneup();
   tuneup.run(args).catchError((e, st) {
     if (e is UsageException) {
       // These errors are expected.
@@ -18,8 +18,8 @@ void main(List<String> args) {
     } else if (e is ExitCode) {
       exit(e.code);
     } else {
-      print('${e}');
-      if (e is! String) print('${st}');
+      print('$e');
+      if (e is! String) print('$st');
       exit(1);
     }
   });

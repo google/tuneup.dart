@@ -2,9 +2,7 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-/**
- * A command-line tool to manipulate and inspect your Dart projects.
- */
+/// A command-line tool to manipulate and inspect your Dart projects.
 library tuneup;
 
 import 'dart:io';
@@ -25,13 +23,15 @@ import 'src/common.dart';
 const String appVersion = '0.3.8';
 const String appName = 'tuneup';
 
-class Tuneup extends CommandRunner {
-  Logger logger;
-  Project project;
+class Tuneup extends CommandRunner<void> {
+  Logger? logger;
+  late Project project;
 
   Tuneup({this.logger})
       : super(
-            appName, 'A tool to improve visibility into your Dart projects.') {
+          appName,
+          'A tool to improve visibility into your Dart projects.',
+        ) {
     argParser.addFlag('version',
         negatable: false, help: 'Display the application version.');
     argParser.addOption('dart-sdk', help: 'the path to the sdk');
@@ -44,34 +44,35 @@ class Tuneup extends CommandRunner {
         help: 'Use ansi colors when printing messages.',
         defaultsTo: Ansi.terminalSupportsAnsi);
 
-    addCommand(new InitCommand(this));
-    addCommand(new CheckCommand(this));
-    addCommand(new StatsCommand(this));
-    addCommand(new TrimCommand(this));
-    addCommand(new CleanCommand(this));
+    addCommand(InitCommand(this));
+    addCommand(CheckCommand(this));
+    addCommand(StatsCommand(this));
+    addCommand(TrimCommand(this));
+    addCommand(CleanCommand(this));
   }
 
-  Future run(Iterable<String> args, {Directory directory}) async {
+  @override
+  Future<void> run(Iterable<String> args, {Directory? directory}) async {
     ArgResults results = args.isEmpty ? parse(['check']) : parse(args);
 
-    Ansi ansi;
+    Ansi? ansi;
     if (results.wasParsed('color')) {
-      ansi = new Ansi(results['color']);
+      ansi = Ansi(results['color']);
     }
 
-    logger ??= new Logger.standard(ansi: ansi);
+    logger ??= Logger.standard(ansi: ansi);
 
     if (results['version']) {
-      _out('${appName} version ${appVersion}');
-      return new Future.value();
+      _out('$appName version $appVersion');
+      return Future.value();
     }
 
     if (results['directory'] != null) {
-      Directory dir = new Directory(results['directory']);
+      Directory dir = Directory(results['directory']);
       if (!dir.existsSync()) {
         String message = 'Directory specified does not exist "${dir.path}".';
-        _out('Error: ${message}');
-        throw new UsageException(message, usage);
+        _out('Error: $message');
+        throw UsageException(message, usage);
       }
       directory = dir;
     }
@@ -82,15 +83,15 @@ class Tuneup extends CommandRunner {
     directory ??= Directory.current;
 
     if (results['verbose']) {
-      logger = new Logger.verbose(ansi: ansi);
+      logger = Logger.verbose(ansi: ansi);
     }
 
-    project = new Project(directory, sdkPath, logger);
+    project = Project(directory, sdkPath, logger!);
 
     return runCommand(results);
   }
 
   void _out(String str) {
-    logger == null ? print(str) : logger.stdout(str);
+    logger == null ? print(str) : logger!.stdout(str);
   }
 }

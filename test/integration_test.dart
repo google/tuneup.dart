@@ -2,6 +2,8 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// ignore_for_file: void_checks
+
 import 'dart:async';
 import 'dart:io';
 
@@ -15,25 +17,27 @@ void main() => defineTests();
 
 void defineTests() {
   group('integration', () {
-    final Directory foo = new Directory('foo');
-    _Logger logger;
+    final Directory foo = Directory('foo');
+    late _Logger logger;
 
     setUp(() {
       if (foo.existsSync()) foo.deleteSync(recursive: true);
       foo.createSync();
-      logger = new _Logger();
+      logger = _Logger();
     });
 
     tearDown(() {
       try {
         foo.deleteSync(recursive: true);
-      } catch (e) {}
+      } catch (e) {
+        // ignore
+      }
     });
 
     test('no args', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
+      Tuneup tuneup = Tuneup(logger: logger);
       return tuneup.run(['init'], directory: foo).then((_) {
-        expect(new File('foo/bin/helloworld.dart').existsSync(), true);
+        expect(File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
         _setupPub();
         return tuneup.run(['check'], directory: foo);
@@ -45,8 +49,8 @@ void defineTests() {
     });
 
     test('bad command', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.run(['foo_command'], directory: foo).then((_) {
+      Tuneup tuneup = Tuneup(logger: logger);
+      return tuneup.run(['foo_command'], directory: foo).then<void>((_) {
         fail('expected exception');
       }).catchError((e) {
         expect(e is UsageException, true);
@@ -55,8 +59,8 @@ void defineTests() {
     });
 
     test('bad arg', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.run(['--foo', 'bar'], directory: foo).then((_) {
+      Tuneup tuneup = Tuneup(logger: logger);
+      return tuneup.run(['--foo', 'bar'], directory: foo).then<void>((_) {
         fail('should have thrown');
       }).catchError((e) {
         expect(e is UsageException, true);
@@ -65,22 +69,22 @@ void defineTests() {
     });
 
     test('--help', () async {
-      final StringBuffer buf = new StringBuffer();
+      final StringBuffer buf = StringBuffer();
 
       printHandler(Zone self, ZoneDelegate parent, Zone zone, String line) {
         buf.writeln(line);
       }
 
       await runZoned(() async {
-        Tuneup tuneup = new Tuneup();
+        Tuneup tuneup = Tuneup();
         await tuneup.run(['--help'], directory: foo);
-      }, zoneSpecification: new ZoneSpecification(print: printHandler));
+      }, zoneSpecification: ZoneSpecification(print: printHandler));
       expect(buf.toString(),
           contains('A tool to improve visibility into your Dart projects.'));
     });
 
     test('--version', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
+      Tuneup tuneup = Tuneup(logger: logger);
       return tuneup.run(['--version'], directory: foo).then((_) {
         expect(logger.out, contains('tuneup version '));
         expect(logger.err, isEmpty);
@@ -88,17 +92,17 @@ void defineTests() {
     });
 
     test('init', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
+      Tuneup tuneup = Tuneup(logger: logger);
       return tuneup.run(['init'], directory: foo).then((_) {
-        expect(new File('foo/bin/helloworld.dart').existsSync(), true);
+        expect(File('foo/bin/helloworld.dart').existsSync(), true);
       });
     });
 
     test('stats', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
+      Tuneup tuneup = Tuneup(logger: logger);
       return tuneup.run(['init'], directory: foo).then((_) {
-        expect(new File('foo/bin/helloworld.dart').existsSync(), true);
-        File other = new File('foo/web/index.html');
+        expect(File('foo/bin/helloworld.dart').existsSync(), true);
+        File other = File('foo/web/index.html');
         other.parent.createSync(recursive: true);
         other.writeAsStringSync('<body>\n  hey!\n</body>\n');
       }).then((_) {
@@ -110,9 +114,9 @@ void defineTests() {
     });
 
     test('trim', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
-      File hello = new File('foo/bin/helloworld.dart');
-      File other = new File('foo/web/index.html');
+      Tuneup tuneup = Tuneup(logger: logger);
+      File hello = File('foo/bin/helloworld.dart');
+      File other = File('foo/web/index.html');
 
       return tuneup.run(['init'], directory: foo).then((_) {
         other.parent.createSync(recursive: true);
@@ -127,9 +131,9 @@ void defineTests() {
     });
 
     test('check', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
+      Tuneup tuneup = Tuneup(logger: logger);
       return tuneup.run(['init'], directory: foo).then((_) {
-        expect(new File('foo/bin/helloworld.dart').existsSync(), true);
+        expect(File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
         _setupPub();
         return tuneup.run(['check'], directory: foo);
@@ -141,15 +145,15 @@ void defineTests() {
     });
 
     test('check with errors', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
-      return tuneup.run(['init'], directory: foo).then((_) {
-        File f = new File('foo/bin/helloworld.dart');
+      Tuneup tuneup = Tuneup(logger: logger);
+      return tuneup.run(['init'], directory: foo).then<void>((_) {
+        File f = File('foo/bin/helloworld.dart');
         expect(f.existsSync(), true);
         f.writeAsStringSync(_errorText);
-      }).then((_) {
+      }).then<void>((_) {
         _setupPub();
         return tuneup.run(['check'], directory: foo);
-      }).then((_) {
+      }).then<void>((_) {
         fail('expected analysis errors');
       }).catchError((e) {
         expect(e is ExitCode, true);
@@ -160,11 +164,11 @@ void defineTests() {
     });
 
     test('clean', () {
-      Tuneup tuneup = new Tuneup(logger: logger);
+      Tuneup tuneup = Tuneup(logger: logger);
       return tuneup.run(['init'], directory: foo).then((_) {
-        expect(new File('foo/bin/helloworld.dart').existsSync(), true);
+        expect(File('foo/bin/helloworld.dart').existsSync(), true);
       }).then((_) {
-        new Directory('foo/build').createSync();
+        Directory('foo/build').createSync();
         return tuneup.run(['clean'], directory: foo);
       }).then((_) {
         expect(logger.out, contains('Deleting build'));
@@ -175,37 +179,46 @@ void defineTests() {
 }
 
 void _setupPub() {
-  File pubspec = new File('foo/pubspec.yaml');
+  File pubspec = File('foo/pubspec.yaml');
   pubspec.writeAsStringSync('name: foo\n');
-  Process.runSync('pub', ['get'], workingDirectory: 'foo');
+  Process.runSync('dart', ['pub', 'get'], workingDirectory: 'foo');
 }
 
 class _Logger implements Logger {
-  Ansi ansi;
+  @override
+  late Ansi ansi;
 
   _Logger() {
-    ansi = new Ansi(false);
+    ansi = Ansi(false);
   }
 
-  StringBuffer _out = new StringBuffer();
-  StringBuffer _err = new StringBuffer();
-  StringBuffer _trc = new StringBuffer();
+  final StringBuffer _out = StringBuffer();
+  final StringBuffer _err = StringBuffer();
+  final StringBuffer _trc = StringBuffer();
 
+  @override
   void stdout(String message) => _out.writeln(message);
+  @override
   void stderr(String message) => _err.writeln(message);
+  @override
   void trace(String message) => _trc.writeln(message);
+  @override
   void write(String message) => _out.write(message);
+  @override
   void writeCharCode(int charCode) => _out.writeCharCode(charCode);
 
-  Progress progress(String message) => new _Progress(message);
+  @override
+  Progress progress(String message) => _Progress(message);
   void progressFinished(Progress progress) {}
 
+  @override
   void flush() {}
 
   String get out => _out.toString();
   String get err => _err.toString();
   String get trc => _trc.toString();
 
+  @override
   bool get isVerbose => true;
 }
 
@@ -216,11 +229,12 @@ void main() {
 ''';
 
 class _Progress implements Progress {
+  @override
   final String message;
-  Stopwatch timer;
+  late Stopwatch timer;
 
   _Progress(this.message) {
-    timer = new Stopwatch()..start();
+    timer = Stopwatch()..start();
   }
   @override
   void cancel() {}
@@ -229,5 +243,5 @@ class _Progress implements Progress {
   Duration get elapsed => timer.elapsed;
 
   @override
-  void finish({String message, bool showTiming = false}) {}
+  void finish({String? message, bool showTiming = false}) {}
 }

@@ -1,33 +1,36 @@
 // In-lined from package:quiver.
 
 // http://ecma-international.org/ecma-262/5.1/#sec-15.10
-final _specialChars = new RegExp(r'([\\\^\$\.\|\+\[\]\(\)\{\}])');
+final _specialChars = RegExp(r'([\\\^\$\.\|\+\[\]\(\)\{\}])');
 
 class Glob implements Pattern {
   final RegExp regex;
   final String pattern;
 
-  Glob(String pattern)
-      : pattern = pattern,
-        regex = _regexpFromGlobPattern(pattern);
+  Glob(this.pattern) : regex = _regexpFromGlobPattern(pattern);
 
+  @override
   Iterable<Match> allMatches(String str, [int start = 0]) =>
       regex.allMatches(str, start);
 
-  Match matchAsPrefix(String string, [int start = 0]) =>
+  @override
+  Match? matchAsPrefix(String string, [int start = 0]) =>
       regex.matchAsPrefix(string, start);
 
   bool hasMatch(String str) => regex.hasMatch(str);
 
+  @override
   String toString() => pattern;
 
+  @override
   int get hashCode => pattern.hashCode;
 
+  @override
   bool operator ==(other) => other is Glob && pattern == other.pattern;
 }
 
 RegExp _regexpFromGlobPattern(String pattern) {
-  var sb = new StringBuffer();
+  var sb = StringBuffer();
   sb.write('^');
   var chars = pattern.split('');
   for (var i = 0; i < chars.length; i++) {
@@ -48,5 +51,5 @@ RegExp _regexpFromGlobPattern(String pattern) {
     }
   }
   sb.write(r'$');
-  return new RegExp(sb.toString());
+  return RegExp(sb.toString());
 }

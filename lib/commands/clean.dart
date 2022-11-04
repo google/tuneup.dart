@@ -15,14 +15,15 @@ class CleanCommand extends TuneupCommand {
       : super(
             tuneup, 'clean', 'clean the project - remove the build/ directory');
 
+  @override
   Future execute(Project project) {
-    Directory buildDir = new Directory(path.join(project.dir.path, 'build'));
+    Directory buildDir = Directory(path.join(project.dir.path, 'build'));
 
     if (buildDir.existsSync()) {
       project.print('Deleting ${path.basename(buildDir.path)}/.');
       return buildDir.delete(recursive: true);
     } else {
-      return new Future.value();
+      return Future.value();
     }
   }
 }

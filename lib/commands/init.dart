@@ -16,9 +16,10 @@ class InitCommand extends TuneupCommand {
         negatable: false, help: 'Force generation of the sample project.');
   }
 
+  @override
   Future execute(Project project) {
-    if (!argResults['override'] && !_isDirEmpty(project.dir)) {
-      return new Future.error('The current directory is not empty. Please '
+    if (!argResults!['override'] && !_isDirEmpty(project.dir)) {
+      return Future.error('The current directory is not empty. Please '
           'create a new project directory, or use --override to force '
           'generation into the current directory.');
     }
@@ -26,7 +27,7 @@ class InitCommand extends TuneupCommand {
     // Validate and normalize the project name.
     String projectName = path.basename(project.dir.path);
     if (_validateName(projectName) != null) {
-      return new Future.error(_validateName(projectName));
+      return Future.error(_validateName(projectName)!);
     }
     projectName = _normalizeProjectName(projectName);
 
@@ -38,7 +39,7 @@ class InitCommand extends TuneupCommand {
     project.print('');
     runDartScript('bin/helloworld.dart', workingDirectory: project.dir.path);
 
-    return new Future.value();
+    return Future.value();
   }
 }
 
@@ -73,32 +74,30 @@ environment:
 void _writeFile(
     Project project, String filename, String contents, String projectName) {
   contents = contents.replaceAll('{{projectName}}', projectName);
-  File file = new File(path.join(project.dir.path, filename));
+  File file = File(path.join(project.dir.path, filename));
   if (!file.parent.existsSync()) file.parent.createSync();
   file.writeAsStringSync(contents);
-  project.print('Created ${filename}.');
+  project.print('Created $filename.');
 }
 
-/**
- * Return true if there are any non-symlinked, non-hidden sub-directories in
- * the given directory.
- */
+/// Return true if there are any non-symlinked, non-hidden sub-directories in
+/// the given directory.
 bool _isDirEmpty(Directory dir) {
-  var isHiddenDir = (dir) => path.basename(dir.path).startsWith('.');
+  isHiddenDir(dir) => path.basename(dir.path).startsWith('.');
 
   return dir
       .listSync(followLinks: false)
-      .where((entity) => entity is Directory)
+      .whereType<Directory>()
       .where((entity) => !isHiddenDir(entity))
       .isEmpty;
 }
 
-String _validateName(String projectName) {
+String? _validateName(String projectName) {
   if (projectName.contains(' ')) {
     return "The project name cannot contain spaces.";
   }
 
-  if (!projectName.startsWith(new RegExp(r'[A-Za-z]'))) {
+  if (!projectName.startsWith(RegExp(r'[A-Za-z]'))) {
     return "The project name must start with a letter.";
   }
 
@@ -106,9 +105,7 @@ String _validateName(String projectName) {
   return null;
 }
 
-/**
- * Convert a directory name into a reasonably legal pub package name.
- */
+/// Convert a directory name into a reasonably legal pub package name.
 String _normalizeProjectName(String name) {
   name = name.replaceAll('-', '_');
 

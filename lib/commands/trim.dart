@@ -11,19 +11,20 @@ import '../tuneup.dart';
 
 class TrimCommand extends TuneupCommand {
   final List<FileHandler> _handlers = [
-    new CssFileHandler(),
-    new DartFileHandler(),
-    new HtmlFileHandler(),
-    new JavaScriptFileHandler(),
-    new MarkdownFileHandler(),
-    new YamlFileHandler()
+    CssFileHandler(),
+    DartFileHandler(),
+    HtmlFileHandler(),
+    JavaScriptFileHandler(),
+    MarkdownFileHandler(),
+    YamlFileHandler()
   ];
 
   TrimCommand(Tuneup tuneup)
       : super(tuneup, 'trim', 'trim unwanted whitespace from your source');
 
+  @override
   Future execute(Project project) {
-    List<String> ext = new List.from(_handlers.expand((h) => h.types));
+    List<String> ext = List.from(_handlers.expand((h) => h.types));
     List<File> files = project.getSourceFiles(extensions: ext);
 
     int modifiedCount = 0;
@@ -45,12 +46,12 @@ class TrimCommand extends TuneupCommand {
 
     if (modifiedCount > 0) {
       project.print(
-          '${modifiedCount} ${pluralize("file", modifiedCount)} changed.');
+          '$modifiedCount ${pluralize("file", modifiedCount)} changed.');
     } else {
       project.print('No files changed.');
     }
 
-    return new Future.value();
+    return Future.value();
   }
 
   bool supportsFileType(String fileExtension) {
@@ -82,9 +83,9 @@ class TrimCommand extends TuneupCommand {
 
 abstract class FileHandler {
   final Set<String> types;
-  final List<Converter> preConverters = [];
-  final List<Converter> lineConverters = [];
-  final List<Converter> postConverters = [];
+  final List<Converter<String, String>> preConverters = [];
+  final List<Converter<String?, String?>> lineConverters = [];
+  final List<Converter<String, String>> postConverters = [];
 
   FileHandler(this.types);
 
@@ -95,9 +96,9 @@ abstract class FileHandler {
       contents = converter.convert(contents);
     }
 
-    if (!lineConverters.isEmpty) {
+    if (lineConverters.isNotEmpty) {
       // TODO: remove this once converters are cloned
-      for (Converter converter in lineConverters) {
+      for (var converter in lineConverters) {
         converter.convert(null);
       }
 
@@ -105,20 +106,21 @@ abstract class FileHandler {
       List<String> results = [];
 
       for (String line in lines) {
-        for (Converter converter in lineConverters) {
-          line = converter.convert(line);
-          if (line == null) break;
+        String? result = line;
+        for (var converter in lineConverters) {
+          result = converter.convert(result);
+          if (result == null) break;
         }
 
-        if (line != null) {
-          results.add(line);
+        if (result != null) {
+          results.add(result);
         }
       }
 
       contents = results.join(eol);
     }
 
-    for (Converter converter in postConverters) {
+    for (var converter in postConverters) {
       contents = converter.convert(contents);
     }
 
@@ -126,10 +128,9 @@ abstract class FileHandler {
   }
 }
 
-/**
- * Make sure we end with one eol at eof.
- */
+/// Make sure we end with one eol at eof.
 class EndsWithEOLConverter extends Converter<String, String> {
+  @override
   String convert(String input) {
     String eol = discoverEol(input);
     input = input.trimRight() + eol;
@@ -137,20 +138,18 @@ class EndsWithEOLConverter extends Converter<String, String> {
   }
 }
 
-/**
- * Remove any whitespace at the end of the line.
- */
-class RightTrimLine extends Converter<String, String> {
-  String convert(String input) => input == null ? null : input.trimRight();
+/// Remove any whitespace at the end of the line.
+class RightTrimLine extends Converter<String?, String?> {
+  @override
+  String? convert(String? input) => input?.trimRight();
 }
 
-/**
- * Remove double blank lines.
- */
-class RemoveDoubleBlankConverter extends Converter<String, String> {
+/// Remove double blank lines.
+class RemoveDoubleBlankConverter extends Converter<String?, String?> {
   bool _lastWasBlank = false;
 
-  String convert(String input) {
+  @override
+  String? convert(String? input) {
     if (input == null) {
       _lastWasBlank = false;
       return null;
@@ -171,53 +170,53 @@ class RemoveDoubleBlankConverter extends Converter<String, String> {
 }
 
 class CssFileHandler extends FileHandler {
-  CssFileHandler() : super(new Set.from(['css', 'scss'])) {
-    lineConverters.add(new RightTrimLine());
-    lineConverters.add(new RemoveDoubleBlankConverter());
-    postConverters.add(new EndsWithEOLConverter());
+  CssFileHandler() : super({'css', 'scss'}) {
+    lineConverters.add(RightTrimLine());
+    lineConverters.add(RemoveDoubleBlankConverter());
+    postConverters.add(EndsWithEOLConverter());
   }
 }
 
 class DartFileHandler extends FileHandler {
-  DartFileHandler() : super(new Set.from(['dart'])) {
+  DartFileHandler() : super({'dart'}) {
     // TODO: This will not properly handle multi-line strings.
-    lineConverters.add(new RightTrimLine());
+    lineConverters.add(RightTrimLine());
 
     // TODO: This will not properly handle multi-line strings.
-    lineConverters.add(new RemoveDoubleBlankConverter());
+    lineConverters.add(RemoveDoubleBlankConverter());
 
-    postConverters.add(new EndsWithEOLConverter());
+    postConverters.add(EndsWithEOLConverter());
   }
 }
 
 class HtmlFileHandler extends FileHandler {
-  HtmlFileHandler() : super(new Set.from(['htm', 'html'])) {
-    lineConverters.add(new RightTrimLine());
-    lineConverters.add(new RemoveDoubleBlankConverter());
-    postConverters.add(new EndsWithEOLConverter());
+  HtmlFileHandler() : super({'htm', 'html'}) {
+    lineConverters.add(RightTrimLine());
+    lineConverters.add(RemoveDoubleBlankConverter());
+    postConverters.add(EndsWithEOLConverter());
   }
 }
 
 class JavaScriptFileHandler extends FileHandler {
-  JavaScriptFileHandler() : super(new Set.from(['js'])) {
-    lineConverters.add(new RightTrimLine());
-    lineConverters.add(new RemoveDoubleBlankConverter());
-    postConverters.add(new EndsWithEOLConverter());
+  JavaScriptFileHandler() : super({'js'}) {
+    lineConverters.add(RightTrimLine());
+    lineConverters.add(RemoveDoubleBlankConverter());
+    postConverters.add(EndsWithEOLConverter());
   }
 }
 
 class MarkdownFileHandler extends FileHandler {
-  MarkdownFileHandler() : super(new Set.from(['md'])) {
-    lineConverters.add(new RightTrimLine());
-    lineConverters.add(new RemoveDoubleBlankConverter());
-    postConverters.add(new EndsWithEOLConverter());
+  MarkdownFileHandler() : super({'md'}) {
+    lineConverters.add(RightTrimLine());
+    lineConverters.add(RemoveDoubleBlankConverter());
+    postConverters.add(EndsWithEOLConverter());
   }
 }
 
 class YamlFileHandler extends FileHandler {
-  YamlFileHandler() : super(new Set.from(['yaml'])) {
-    lineConverters.add(new RightTrimLine());
-    lineConverters.add(new RemoveDoubleBlankConverter());
-    postConverters.add(new EndsWithEOLConverter());
+  YamlFileHandler() : super({'yaml'}) {
+    lineConverters.add(RightTrimLine());
+    lineConverters.add(RemoveDoubleBlankConverter());
+    postConverters.add(EndsWithEOLConverter());
   }
 }
